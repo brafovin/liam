@@ -702,6 +702,11 @@ function interact() {
       winGame(); return;
     }
 
+    if (obj.task !== activeTask) {
+      showStory('Erledige zuerst deine aktuelle Aufgabe.', 2500);
+      return;
+    }
+
     collected.add(obj.id);
     TASKS[obj.task].done = true;
     activeTask = Math.min(TASKS.length - 1, obj.task + 1);
