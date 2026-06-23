@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>THE LAST SHIFT – Horror Game</title>
+<title>THE LAST SHIFT – Horrorspiel</title>
 <style>
 /* ============================================================
    BASE STYLES
@@ -224,7 +224,7 @@ const TASKS = [
   { text:'Sicherheitskeycard finden (Zimmer 112)', done:false },
   { text:'Generator starten (Keller)', done:false },
   { text:'Direktorsbüro durchsuchen', done:false },
-  { text:'Exitcode finden', done:false },
+  { text:'Ausgangscode finden', done:false },
   { text:'Durch den Notausgang fliehen', done:false },
 ];
 
@@ -239,13 +239,13 @@ const OBJECTS = [
     jumpscare:false,
   },
   {
-    id:'keycard', tx:23, ty:3, icon:'KEY', label:'Keycard',
+    id:'keycard', tx:23, ty:3, icon:'SCHLÜSSEL', label:'Schlüsselkarte',
     task:1, color:'#60e8e8',
     story:'Du findest die Sicherheitskarte. Jemand hat mit Blut darauf geschrieben: "LAUF".',
     jumpscare:false,
   },
   {
-    id:'generator', tx:5, ty:11, icon:'GEN', label:'Generator',
+    id:'generator', tx:5, ty:11, icon:'STROM', label:'Generator',
     task:2, color:'#e8a030',
     story:'Der Generator rattert und springt an. Notlichter flackern auf. Aus dem Korridor hörst du ein langes, raues Schreien — kein menschliches.',
     jumpscare:true,
@@ -258,7 +258,7 @@ const OBJECTS = [
     jumpscare:false,
   },
   {
-    id:'exitcode', tx:23, ty:19, icon:'CODE', label:'Exitcode',
+    id:'exitcode', tx:23, ty:19, icon:'KODE', label:'Ausgangscode',
     task:4, color:'#e060e8',
     story:'An der Wand, in etwas Dunklem geschrieben: AUSGANG — 7 7 4 9. Darunter: "ER WEISS, DASS DU HIER BIST."',
     jumpscare:false,
@@ -697,7 +697,7 @@ function interact() {
     if (obj.isExit) {
       if (!inv.keycard) { showStory('Die Tür ist verschlossen. Du brauchst eine Sicherheitskeycard.', 3000); return; }
       if (!inv.power)   { showStory('Kein Strom. Das elektronische Schloss funktioniert nicht.', 3000); return; }
-      if (!inv.code)    { showStory('Du brauchst den Exitcode.', 3000); return; }
+      if (!inv.code)    { showStory('Du brauchst den Ausgangscode.', 3000); return; }
       winGame(); return;
     }
 
