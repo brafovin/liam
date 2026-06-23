@@ -128,8 +128,8 @@ canvas { display:block; }
     <span style="color:#8b0000">Und irgendetwas ist hier drinnen mit dir.</span>
   </div>
   <div class="controls">
-    WASD / Pfeiltasten — Bewegen &nbsp;|&nbsp; SHIFT — Sprinten &nbsp;|&nbsp; E — Interagieren<br>
-    T — Aufgabenliste ein/aus &nbsp;|&nbsp; (Kopfhörer empfohlen)
+    WASD — Bewegen &nbsp;|&nbsp; E — Interagieren &nbsp;|&nbsp; T — Aufgabenliste ein/aus<br>
+    (Kopfhörer empfohlen)
   </div>
   <button onclick="startGame()">LETZTE SCHICHT BEGINNEN</button>
 </div>
@@ -148,8 +148,6 @@ canvas { display:block; }
 <div id="hud">
   <div class="bar-label" id="sanityLabel">VERSTAND</div>
   <div class="bar-bg"><div class="bar-fill" id="sanityFill" style="width:100%"></div></div>
-  <div class="bar-label" id="staminaLabel">AUSDAUER</div>
-  <div class="bar-bg"><div class="bar-fill" id="staminaFill" style="width:100%"></div></div>
 </div>
 
 <!-- STORY BOX -->
@@ -305,7 +303,7 @@ const DECORATIONS = [
 // GAME STATE
 // ============================================================
 let canvas, ctx, jCanvas, jCtx;
-let player = { x:2.5, y:20.5, speed:3.2, sanity:100, stamina:100, dir:'down', frame:0, frameTimer:0, moving:false };
+let player = { x:2.5, y:20.5, speed:3.2, sanity:100, dir:'down', frame:0, frameTimer:0, moving:false };
 let monster = { x:25.5, y:1.5, speed:1.6, alert:0, wanderAngle:0, wanderTimer:2 };
 let cam = { x:0, y:0 };
 let keys = {};
@@ -741,13 +739,12 @@ function winGame() {
 let footstepTimer = 0;
 function updatePlayer(dt) {
   let dx = 0, dy = 0;
-  if (keys['a'] || keys['arrowleft'])  dx -= 1;
-  if (keys['d'] || keys['arrowright']) dx += 1;
-  if (keys['w'] || keys['arrowup'])    dy -= 1;
-  if (keys['s'] || keys['arrowdown'])  dy += 1;
+  if (keys['a']) dx -= 1;
+  if (keys['d']) dx += 1;
+  if (keys['w']) dy -= 1;
+  if (keys['s']) dy += 1;
 
-  const sprint = (keys['shift'] || keys[' ']) && player.stamina > 0;
-  const spd = sprint ? player.speed * 1.9 : player.speed;
+  const spd = player.speed;
 
   // Direction update
   if (dx !== 0 || dy !== 0) {
@@ -782,14 +779,13 @@ function updatePlayer(dt) {
     footstepTimer -= dt;
     if (footstepTimer <= 0) {
       playFootstep();
-      footstepTimer = sprint ? 0.22 : 0.32;
+      footstepTimer = 0.32;
     }
   } else {
     footstepTimer = 0;
   }
 
-  if (sprint && (dx || dy)) { player.stamina = Math.max(0, player.stamina - dt * 45); noise = 0.95; }
-  else { player.stamina = Math.min(100, player.stamina + dt * 18); noise = (dx || dy) ? 0.35 : 0.05; }
+  noise = (dx || dy) ? 0.35 : 0.05;
 }
 
 // ============================================================
@@ -1636,7 +1632,6 @@ function drawDangerBorder() {
 // ============================================================
 function drawHUD() {
   document.getElementById('sanityFill').style.width = Math.max(0, player.sanity) + '%';
-  document.getElementById('staminaFill').style.width = player.stamina + '%';
 }
 
 // ============================================================
