@@ -221,12 +221,12 @@ const MAP = [
 // TASKS
 // ============================================================
 const TASKS = [
-  { text:'Nachtschicht-Notiz lesen (Ostflügel)', done:false },
-  { text:'Sicherheitskeycard finden (Zimmer 112)', done:false },
-  { text:'Generator starten (Keller)', done:false },
-  { text:'Direktorsbüro durchsuchen', done:false },
-  { text:'Ausgangscode finden', done:false },
-  { text:'Durch den Notausgang fliehen', done:false },
+  { text:'Nachtschicht-Notiz lesen (Zi. 107)', done:false },
+  { text:'Sicherheitskeycard finden (Zi. 103)', done:false },
+  { text:'Generator starten (Zi. 104)', done:false },
+  { text:'Direktorsbüro durchsuchen (Zi. 106)', done:false },
+  { text:'Ausgangscode finden (Zi. 110)', done:false },
+  { text:'Notausgang benutzen (Zi. 108)', done:false },
 ];
 
 // ============================================================
@@ -276,17 +276,18 @@ const OBJECTS = [
 // ROOM LABELS
 // cx/cy in tile units (center of the sign)
 // ============================================================
+// cx/cy = center of the door tile in tile-units (tx+0.5, ty+0.5)
 const ROOMS = [
-  { num:'101', cx:3.5,  cy:1.6 },
-  { num:'102', cx:10.5, cy:1.6 },
-  { num:'103', cx:20.5, cy:1.6 },
-  { num:'104', cx:6.5,  cy:10.6 },
-  { num:'105', cx:17.0, cy:10.6 },
-  { num:'106', cx:23.5, cy:10.6 },
-  { num:'107', cx:3.5,  cy:18.6 },
-  { num:'108', cx:10.5, cy:18.6 },
-  { num:'109', cx:17.5, cy:18.6 },
-  { num:'110', cx:24.0, cy:18.6 },
+  { num:'101', cx:3.5,  cy:6.5  },   // Tür Reihe 6 – Zimmer oben-links
+  { num:'102', cx:10.5, cy:6.5  },   // Tür Reihe 6 – Zimmer oben-mitte
+  { num:'103', cx:16.5, cy:6.5  },   // Tür Reihe 6 – Zimmer oben-rechts
+  { num:'104', cx:7.5,  cy:9.5  },   // Tür Reihe 9 – Generator
+  { num:'105', cx:17.5, cy:9.5  },   // Tür Reihe 9 – Direktor
+  { num:'106', cx:21.5, cy:9.5  },   // Eingang (kein Türtile) – Nebenraum rechts
+  { num:'107', cx:3.5,  cy:17.5 },   // Tür Reihe 17 – Spawn-Zimmer
+  { num:'108', cx:10.5, cy:17.5 },   // Tür Reihe 17 – Notausgang-Zimmer
+  { num:'109', cx:16.5, cy:17.5 },   // Tür Reihe 17 – unten-mitte-rechts
+  { num:'110', cx:22.5, cy:17.5 },   // Tür Reihe 17 – unten-rechts
 ];
 
 // ============================================================
@@ -1019,22 +1020,30 @@ function drawRoomLabels() {
   for (const r of ROOMS) {
     const sx = r.cx * TILE - cam.x;
     const sy = r.cy * TILE - cam.y;
-    if (sx < -60 || sx > canvas.width / ZOOM + 60 || sy < -20 || sy > canvas.height / ZOOM + 20) continue;
+    if (sx < -60 || sx > canvas.width / ZOOM + 60 || sy < -30 || sy > canvas.height / ZOOM + 30) continue;
 
-    const w = 38, h = 14;
-    // Plaque background
-    ctx.fillStyle = 'rgba(10,10,14,0.82)';
+    // Door plate — mounted centered on the door tile
+    const w = 30, h = 12;
+    ctx.fillStyle = 'rgba(28,22,8,0.92)';
     ctx.fillRect(sx - w / 2, sy - h / 2, w, h);
-    ctx.strokeStyle = '#3a3a44';
-    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = '#a08030';
+    ctx.lineWidth = 1;
     ctx.strokeRect(sx - w / 2, sy - h / 2, w, h);
 
-    // Room number text
-    ctx.fillStyle = '#888899';
+    // Screw dots (corners)
+    ctx.fillStyle = '#7a6020';
+    const sr = 1.2;
+    ctx.beginPath(); ctx.arc(sx - w/2 + 3, sy - h/2 + 3, sr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + w/2 - 3, sy - h/2 + 3, sr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx - w/2 + 3, sy + h/2 - 3, sr, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + w/2 - 3, sy + h/2 - 3, sr, 0, Math.PI*2); ctx.fill();
+
+    // Number text
+    ctx.fillStyle = '#e8d080';
     ctx.font = 'bold 9px Courier New';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('ZI. ' + r.num, sx, sy);
+    ctx.fillText(r.num, sx, sy);
   }
 }
 
