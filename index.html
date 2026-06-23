@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>THE LAST SHIFT – Horror Game</title>
 <style>
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#000; overflow:hidden; font-family:'Courier New',monospace; }
 canvas { display:block; }
 
+/* INTRO SCREEN */
 #intro {
   position:fixed; inset:0; background:#000;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -30,11 +34,11 @@ canvas { display:block; }
 }
 #intro button:hover { background:#8b0000; color:#fff; box-shadow:0 0 20px #ff000066; }
 
-/* TASK LIST */
+/* TASK PANEL */
 #taskPanel {
   position:fixed; top:14px; left:14px; z-index:200;
   background:rgba(0,0,0,0.88); border:1px solid #2a2a2a;
-  padding:12px 14px; min-width:240px; max-width:280px;
+  padding:12px 14px; min-width:240px; max-width:290px;
   transition:transform 0.25s ease, opacity 0.25s ease;
   pointer-events:none;
 }
@@ -69,10 +73,18 @@ canvas { display:block; }
 }
 #storyBox.visible { opacity:1; }
 
-/* JUMPSCARE */
+/* JUMPSCARE CANVAS */
 #jumpCanvas {
   position:fixed; inset:0; z-index:900;
   display:none;
+}
+
+/* BREATHING VIGNETTE (low sanity) */
+#breatheVignette {
+  position:fixed; inset:0; z-index:155; pointer-events:none;
+  opacity:0;
+  background:radial-gradient(ellipse at center, transparent 40%, rgba(80,0,0,0.85) 100%);
+  transition:opacity 0.3s;
 }
 
 /* RED BORDER WARNING */
@@ -108,40 +120,43 @@ canvas { display:block; }
 <div id="intro">
   <h1>THE LAST SHIFT</h1>
   <div class="sub">ST. DAMIEN'S HOSPITAL — 2:47 AM</div>
-  <div class="warn">⚠ Enthält Jumpscares und verstörende Inhalte</div>
+  <div class="warn">WARNING: Contains jumpscares and disturbing content</div>
   <div class="story">
-    Du bist Dr. Elena Marsh — Ärztin im St. Damien Krankenhaus.<br>
-    Du hast zu lange gearbeitet. Du hättest längst gehen sollen.<br>
-    Jetzt sind die Lichter aus. Die Türen verriegelt.<br><br>
-    <span style="color:#8b0000">Und irgendetwas ist hier drinnen mit dir.</span>
+    You are Dr. Elena Marsh — physician at St. Damien's Hospital.<br>
+    You worked too long. You should have left hours ago.<br>
+    Now the lights are out. The doors are locked.<br><br>
+    <span style="color:#8b0000">And something is in here with you.</span>
   </div>
   <div class="controls">
-    WASD / Pfeiltasten – Bewegen &nbsp;|&nbsp; SHIFT – Sprinten &nbsp;|&nbsp; E – Interagieren<br>
-    T – Aufgabenliste ein/ausblenden &nbsp;|&nbsp; (Kopfhörer empfohlen)
+    WASD / Arrow Keys — Move &nbsp;|&nbsp; SHIFT — Sprint &nbsp;|&nbsp; E — Interact<br>
+    T — Toggle Task List &nbsp;|&nbsp; (Headphones recommended)
   </div>
-  <button onclick="startGame()">LETZTE SCHICHT BEGINNEN</button>
+  <button onclick="startGame()">BEGIN THE LAST SHIFT</button>
 </div>
 
-<!-- CANVAS -->
+<!-- MAIN CANVAS -->
 <canvas id="canvas"></canvas>
 
 <!-- TASK PANEL -->
 <div id="taskPanel">
-  <h3>▸ AUFGABEN</h3>
+  <h3>&#9658; OBJECTIVES</h3>
   <div id="taskItems"></div>
-  <div id="taskHint">[T] LISTE EIN/AUSBLENDEN</div>
+  <div id="taskHint">[T] TOGGLE LIST</div>
 </div>
 
 <!-- HUD -->
 <div id="hud">
-  <div class="bar-label" id="sanityLabel">VERSTAND</div>
+  <div class="bar-label" id="sanityLabel">SANITY</div>
   <div class="bar-bg"><div class="bar-fill" id="sanityFill" style="width:100%"></div></div>
-  <div class="bar-label" id="staminaLabel">AUSDAUER</div>
+  <div class="bar-label" id="staminaLabel">STAMINA</div>
   <div class="bar-bg"><div class="bar-fill" id="staminaFill" style="width:100%"></div></div>
 </div>
 
-<!-- STORY -->
+<!-- STORY BOX -->
 <div id="storyBox"></div>
+
+<!-- BREATHING VIGNETTE -->
+<div id="breatheVignette"></div>
 
 <!-- DANGER BORDER -->
 <div id="dangerBorder"></div>
@@ -151,18 +166,18 @@ canvas { display:block; }
 
 <!-- GAME OVER -->
 <div id="gameOver">
-  <h2>DU STIRBST</h2>
-  <p>Patient 7 hat dich gefunden. Im Morgengrauen entdeckt das Reinigungspersonal dein Namensschild auf dem Flur — mehr nicht.</p>
-  <button class="overlay-btn" onclick="location.reload()">Nochmal versuchen</button>
+  <h2>YOU DIE</h2>
+  <p>Patient 7 found you. At dawn, the cleaning staff finds your name badge in the corridor — nothing more.</p>
+  <button class="overlay-btn" onclick="location.reload()">Try Again</button>
 </div>
 
 <!-- WIN -->
 <div id="winScreen">
-  <h2>ENTKOMMEN</h2>
-  <p>Du stolperst in die kalte Nachtluft. Hinter dir steht das Krankenhaus — dunkel und still. Du schaust nie zurück.<br><br>
-  Du versuchst dir einzureden, dass es vorbei ist.<br><br>
-  <span style="color:#444">Aber manchmal, spät in der Nacht, hörst du es noch atmen.</span></p>
-  <button class="overlay-btn" onclick="location.reload()">Nochmal spielen</button>
+  <h2>ESCAPED</h2>
+  <p>You stumble into the cold night air. Behind you, the hospital stands dark and silent. You never look back.<br><br>
+  You try to tell yourself it is over.<br><br>
+  <span style="color:#444">But sometimes, late at night, you can still hear it breathing.</span></p>
+  <button class="overlay-btn" onclick="location.reload()">Play Again</button>
 </div>
 
 <script>
@@ -207,12 +222,12 @@ const MAP = [
 // TASKS
 // ============================================================
 const TASKS = [
-  { text:'Nachtschicht-Notiz lesen (Ostflügel)', done:false },
-  { text:'Sicherheits-Keycard finden (Zimmer 112)', done:false },
-  { text:'Generator starten (Keller)', done:false },
-  { text:'Direktorsbüro durchsuchen', done:false },
-  { text:'Exitcode finden', done:false },
-  { text:'Durch den Hauptausgang fliehen', done:false },
+  { text:'Read the night-shift note (East Wing)', done:false },
+  { text:'Find security keycard (Room 112)', done:false },
+  { text:'Start the generator (Basement)', done:false },
+  { text:'Search the Director\'s office', done:false },
+  { text:'Find the exit code', done:false },
+  { text:'Escape through the main exit', done:false },
 ];
 
 // ============================================================
@@ -220,38 +235,38 @@ const TASKS = [
 // ============================================================
 const OBJECTS = [
   {
-    id:'note1', tx:6, ty:2, icon:'📄', label:'Notiz',
+    id:'note1', tx:6, ty:2, icon:'NOTE', label:'NOTE',
     task:0, color:'#e8e860',
-    story:'"Patient 7 wurde vor drei Wochen entlassen. Aber das Nachtpersonal hört ihn weiterhin im Ostflügel. Zimmer 112. Wir haben nachgesehen. Es ist leer. Ich verstehe das nicht." — Schwester Agnes',
+    story:'"Patient 7 was discharged three weeks ago. But the night staff keeps hearing him in the East Wing. Room 112. We checked. It is empty. I do not understand." — Nurse Agnes',
     jumpscare:false,
   },
   {
-    id:'keycard', tx:23, ty:3, icon:'🔑', label:'Keycard',
+    id:'keycard', tx:23, ty:3, icon:'KEY', label:'Keycard',
     task:1, color:'#60e8e8',
-    story:'Du findest die Sicherheitskarte. Jemand hat mit Blut darauf geschrieben: "LAUF".',
+    story:'You find the security card. Someone has written in blood: "RUN".',
     jumpscare:false,
   },
   {
-    id:'generator', tx:5, ty:11, icon:'⚡', label:'Generator',
+    id:'generator', tx:5, ty:11, icon:'GEN', label:'Generator',
     task:2, color:'#e8a030',
-    story:'Der Generator rattert und springt an. Notlichter flackern auf. Aus dem Korridor hörst du ein langes, raues Schreien — kein menschliches.',
+    story:'The generator rattles and kicks on. Emergency lights flicker. From the corridor you hear a long, ragged scream — not human.',
     jumpscare:true,
     jumpDelay:1800,
   },
   {
-    id:'dirFiles', tx:22, ty:11, icon:'📁', label:'Akten',
+    id:'dirFiles', tx:22, ty:11, icon:'FILE', label:'Files',
     task:3, color:'#e8e860',
-    story:'"Patient 7 — Johannes Doe. Eingeliefert: 3. März. Todesursache: Herzstillstand. Todeszeitpunkt: 23:47 Uhr. Der Körper wurde nie abgeholt. Wir haben ihn im Krankenhausgarten begraben. Gott vergebe uns." — Dr. Holz',
+    story:'"Patient 7 — John Doe. Admitted: March 3rd. Cause of death: cardiac arrest. Time of death: 23:47. The body was never collected. We buried him in the hospital garden. God forgive us." — Dr. Holz',
     jumpscare:false,
   },
   {
-    id:'exitcode', tx:23, ty:19, icon:'🔢', label:'Exitcode',
+    id:'exitcode', tx:23, ty:19, icon:'CODE', label:'Exit Code',
     task:4, color:'#e060e8',
-    story:'An der Wand, in etwas Dunklem geschrieben: EXIT – 7 7 4 9. Darunter: "ER WEISS, DASS DU HIER BIST."',
+    story:'On the wall, written in something dark: EXIT — 7 7 4 9. Below it: "HE KNOWS YOU ARE HERE."',
     jumpscare:false,
   },
   {
-    id:'exit', tx:13, ty:20, icon:'🚪', label:'NOTAUSGANG',
+    id:'exit', tx:13, ty:20, icon:'EXIT', label:'EMERGENCY EXIT',
     task:5, color:'#60e860',
     story:'',
     isExit:true,
@@ -259,10 +274,38 @@ const OBJECTS = [
 ];
 
 // ============================================================
+// STATIC ROOM DECORATIONS  (visual only, no collision)
+// Each: { tx, ty, type }
+// Types: 'bed','desk','cabinet','chair'
+// ============================================================
+const DECORATIONS = [
+  // Top-left room (note room)
+  { tx:1, ty:1, type:'bed' }, { tx:1, ty:3, type:'bed' }, { tx:3, ty:1, type:'desk' },
+  // Top-middle room
+  { tx:9, ty:1, type:'bed' }, { tx:11, ty:1, type:'bed' }, { tx:9, ty:4, type:'cabinet' },
+  // Top-right room
+  { tx:16, ty:1, type:'bed' }, { tx:18, ty:1, type:'bed' }, { tx:20, ty:2, type:'bed' },
+  { tx:24, ty:1, type:'bed' }, { tx:24, ty:3, type:'desk' },
+  // Middle-left sub-room (generator room)
+  { tx:6, ty:10, type:'cabinet' }, { tx:7, ty:12, type:'cabinet' },
+  // Middle-right sub-room (director's)
+  { tx:15, ty:10, type:'desk' }, { tx:17, ty:12, type:'desk' }, { tx:16, ty:11, type:'chair' },
+  // Mid corridor
+  { tx:10, ty:10, type:'cabinet' }, { tx:13, ty:12, type:'cabinet' },
+  // Right corridor rooms
+  { tx:25, ty:10, type:'bed' }, { tx:25, ty:12, type:'bed' },
+  // Bottom rooms
+  { tx:1, ty:18, type:'bed' }, { tx:1, ty:20, type:'bed' }, { tx:3, ty:19, type:'desk' },
+  { tx:8, ty:18, type:'bed' }, { tx:10, ty:19, type:'bed' },
+  { tx:15, ty:18, type:'bed' }, { tx:15, ty:20, type:'bed' },
+  { tx:22, ty:18, type:'bed' }, { tx:22, ty:20, type:'bed' }, { tx:24, ty:18, type:'desk' },
+];
+
+// ============================================================
 // GAME STATE
 // ============================================================
 let canvas, ctx, jCanvas, jCtx;
-let player = { x:2.5, y:20.5, speed:3.2, sanity:100, stamina:100 };
+let player = { x:2.5, y:20.5, speed:3.2, sanity:100, stamina:100, dir:'down', frame:0, frameTimer:0, moving:false };
 let monster = { x:25.5, y:1.5, speed:1.6, alert:0, wanderAngle:0, wanderTimer:2 };
 let cam = { x:0, y:0 };
 let keys = {};
@@ -279,52 +322,253 @@ let gameRunning = false;
 let isDead = false;
 let isWon = false;
 let lastTs = 0;
+let breathePhase = 0;
+let breatheVigTimer = 0;
 
 let inv = { keycard:false, power:false, code:false };
-let audioCtx = null;
 
 // ============================================================
-// AUDIO
+// AUDIO ENGINE
 // ============================================================
+let audioCtx = null;
+let masterGain = null;
+let ambientNode = null;
+let breathOsc = null, breathLFO = null, breathGain = null;
+let heartbeatBeat = 0; // 0 = no beat in progress
+let footLeft = true;
+let creakTimer = 0;
+
 function initAudio() {
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.85;
+  masterGain.connect(audioCtx.destination);
+
+  // Ambient hospital hum — low drone always running
+  startAmbientHum();
+
+  // Monster breathing — continuous looping with LFO mod
+  startMonsterBreath();
+
+  // Schedule first random creak
+  creakTimer = 8 + Math.random() * 12;
 }
 
-function beep(freq, type, vol, dur, freqEnd) {
-  if (!audioCtx) return;
-  const o = audioCtx.createOscillator();
+function startAmbientHum() {
+  const osc = audioCtx.createOscillator();
   const g = audioCtx.createGain();
-  o.connect(g); g.connect(audioCtx.destination);
-  o.type = type || 'sine';
-  o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + dur);
-  g.gain.setValueAtTime(vol, audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-  o.start(); o.stop(audioCtx.currentTime + dur);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 280;
+  osc.type = 'sawtooth';
+  osc.frequency.value = 42;
+  osc.connect(filter);
+  filter.connect(g);
+  g.gain.value = 0.04;
+  g.connect(masterGain);
+  osc.start();
+  ambientNode = { osc, g };
+
+  // slow LFO on hum
+  const lfo = audioCtx.createOscillator();
+  const lfoG = audioCtx.createGain();
+  lfo.frequency.value = 0.07;
+  lfoG.gain.value = 0.018;
+  lfo.connect(lfoG);
+  lfoG.connect(g.gain);
+  lfo.start();
 }
 
-function playPickup()    { beep(520,'sine',0.25,0.15,900); }
-function playHeartbeat() { beep(55,'sine',0.35,0.12); }
-function playCreak()     { beep(180+Math.random()*80,'triangle',0.08,0.5,90); }
-function playScream()    { beep(120,'sawtooth',0.7,0.05,1400); setTimeout(()=>beep(900,'sawtooth',0.6,0.4,200),80); }
-function playGenerator() { beep(60,'sawtooth',0.5,0.8,40); }
+function startMonsterBreath() {
+  // Monster breathing: low filtered noise with LFO
+  const bufSize = audioCtx.sampleRate * 2;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 320;
+  filter.Q.value = 1.2;
+
+  const lfoOsc = audioCtx.createOscillator();
+  const lfoGain = audioCtx.createGain();
+  lfoOsc.frequency.value = 0.22; // breathing rate ~13 breaths/min
+  lfoGain.gain.value = 0.06;
+  lfoOsc.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfoOsc.start();
+
+  const g = audioCtx.createGain();
+  g.gain.value = 0.0; // starts silent, scaled by monster distance
+
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(masterGain);
+  src.start();
+
+  breathGain = g;
+}
+
+function updateBreathVolume(monsterDist) {
+  if (!breathGain) return;
+  // Volume increases as monster approaches
+  const vol = Math.max(0, Math.min(0.32, (10 - monsterDist) / 10 * 0.32));
+  breathGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.5);
+}
+
+function playFootstep() {
+  if (!audioCtx) return;
+  // Noise burst filtered to sound like a footstep
+  const bufSize = audioCtx.sampleRate * 0.08;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2.5);
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  // Alternate frequency per step (left foot slightly lower)
+  filter.frequency.value = footLeft ? 260 : 310;
+  filter.Q.value = 2.5;
+  footLeft = !footLeft;
+
+  const g = audioCtx.createGain();
+  g.gain.value = 0.28;
+
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(masterGain);
+  src.start();
+  setTimeout(() => { try { src.disconnect(); } catch(e){} }, 200);
+}
+
+function playHeartbeat() {
+  if (!audioCtx) return;
+  // Two-pulse "lub-dub" — first pulse (lub)
+  const t = audioCtx.currentTime;
+  playHeartPulse(t, 58, 0.38);
+  // Second pulse (dub) 180ms later, slightly softer
+  playHeartPulse(t + 0.18, 46, 0.26);
+}
+
+function playHeartPulse(startTime, freq, vol) {
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, startTime);
+  osc.frequency.exponentialRampToValueAtTime(28, startTime + 0.12);
+  g.gain.setValueAtTime(0, startTime);
+  g.gain.linearRampToValueAtTime(vol, startTime + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
+  osc.connect(g);
+  g.connect(masterGain);
+  osc.start(startTime);
+  osc.stop(startTime + 0.15);
+}
+
+function playPickup() {
+  if (!audioCtx) return;
+  // Ascending 3-note chime
+  const notes = [520, 660, 880];
+  notes.forEach((freq, i) => {
+    const t = audioCtx.currentTime + i * 0.12;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.18, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t); osc.stop(t + 0.3);
+  });
+}
+
+function playCreak() {
+  if (!audioCtx) return;
+  // Distant creak — filtered noise with pitch envelope
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 180 + Math.random() * 80;
+  filter.Q.value = 6;
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(200 + Math.random() * 60, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(90 + Math.random() * 40, audioCtx.currentTime + 0.6);
+  g.gain.setValueAtTime(0.07, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+  osc.connect(filter); filter.connect(g); g.connect(masterGain);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.65);
+}
+
+function playJumpscareSting() {
+  if (!audioCtx) return;
+  // Noise blast
+  const bufSize = audioCtx.sampleRate * 0.25;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const ng = audioCtx.createGain();
+  ng.gain.value = 0.7;
+  src.connect(ng); ng.connect(masterGain);
+  src.start();
+
+  // Rising sawtooth screech
+  const osc = audioCtx.createOscillator();
+  const og = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(1800, audioCtx.currentTime + 0.45);
+  og.gain.setValueAtTime(0.55, audioCtx.currentTime);
+  og.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+  osc.connect(og); og.connect(masterGain);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.55);
+}
+
+function playGeneratorStartup() {
+  if (!audioCtx) return;
+  // Low rumble that builds
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 200;
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(28, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(55, audioCtx.currentTime + 1.2);
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.55, audioCtx.currentTime + 0.15);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+  osc.connect(filter); filter.connect(g); g.connect(masterGain);
+  osc.start(); osc.stop(audioCtx.currentTime + 1.25);
+}
 
 // ============================================================
 // UTILITIES
 // ============================================================
 function isWall(x, y) {
   const tx = Math.floor(x), ty = Math.floor(y);
-  if (tx<0||ty<0||tx>=COLS||ty>=ROWS) return true;
-  return MAP[ty][tx]===1;
+  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return true;
+  return MAP[ty][tx] === 1;
 }
 
-function tryMove(ent, dx, dy, r=0.28) {
-  const nx = ent.x+dx, ny = ent.y+dy;
-  if (!isWall(nx+r,ent.y+r)&&!isWall(nx+r,ent.y-r)&&!isWall(nx-r,ent.y+r)&&!isWall(nx-r,ent.y-r)) ent.x=nx;
-  if (!isWall(ent.x+r,ny+r)&&!isWall(ent.x+r,ny-r)&&!isWall(ent.x-r,ny+r)&&!isWall(ent.x-r,ny-r)) ent.y=ny;
+function tryMove(ent, dx, dy, r = 0.28) {
+  const nx = ent.x + dx, ny = ent.y + dy;
+  if (!isWall(nx+r, ent.y+r) && !isWall(nx+r, ent.y-r) && !isWall(nx-r, ent.y+r) && !isWall(nx-r, ent.y-r)) ent.x = nx;
+  if (!isWall(ent.x+r, ny+r) && !isWall(ent.x+r, ny-r) && !isWall(ent.x-r, ny+r) && !isWall(ent.x-r, ny-r)) ent.y = ny;
 }
 
-function dist(a,b) { return Math.hypot(a.x-b.x,a.y-b.y); }
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 
 // ============================================================
 // STORY / UI HELPERS
@@ -335,16 +579,16 @@ function showStory(text, ms) {
   el.textContent = text;
   el.classList.add('visible');
   if (storyTimer) clearTimeout(storyTimer);
-  storyTimer = setTimeout(()=>el.classList.remove('visible'), ms);
+  storyTimer = setTimeout(() => el.classList.remove('visible'), ms);
 }
 
 function updateTaskUI() {
   const c = document.getElementById('taskItems');
-  c.innerHTML='';
-  TASKS.forEach((t,i) => {
+  c.innerHTML = '';
+  TASKS.forEach((t, i) => {
     const d = document.createElement('div');
-    d.className = 'task ' + (t.done?'done':(i===activeTask?'active':'pending'));
-    d.textContent = (t.done?'✓ ':(i===activeTask?'▶ ':'○ ')) + t.text;
+    d.className = 'task ' + (t.done ? 'done' : (i === activeTask ? 'active' : 'pending'));
+    d.textContent = (t.done ? '✓ ' : (i === activeTask ? '▶ ' : '○ ')) + t.text;
     c.appendChild(d);
   });
 }
@@ -356,97 +600,121 @@ function doJumpscare() {
   jsCoreCooldown = 10;
   flashRed = 1;
   shake = 1.2;
-  playScream();
+  playJumpscareSting();
   jCanvas.style.display = 'block';
   drawJumpscareFrame();
-  setTimeout(()=>{ jCanvas.style.display='none'; }, 700);
+  setTimeout(() => { jCanvas.style.display = 'none'; }, 700);
 }
 
 function drawJumpscareFrame() {
-  const w=jCanvas.width, h=jCanvas.height;
-  jCtx.fillStyle='#000'; jCtx.fillRect(0,0,w,h);
-
-  // Face
+  const w = jCanvas.width, h = jCanvas.height;
+  jCtx.fillStyle = '#000'; jCtx.fillRect(0, 0, w, h);
   jCtx.save();
-  jCtx.translate(w/2, h/2 + (Math.random()-0.5)*30);
+  jCtx.translate(w / 2, h / 2 + (Math.random() - 0.5) * 30);
 
   // Head (distorted)
-  jCtx.fillStyle='#e8d5c0';
+  jCtx.fillStyle = '#e8d5c0';
   jCtx.beginPath();
-  jCtx.ellipse(0, 0, 210, 270, 0, 0, Math.PI*2);
+  jCtx.ellipse(0, 0, 210, 270, 0, 0, Math.PI * 2);
+  jCtx.fill();
+
+  // Sunken texture
+  jCtx.fillStyle = 'rgba(80,40,20,0.25)';
+  jCtx.beginPath();
+  jCtx.ellipse(0, 0, 200, 260, 0, 0, Math.PI * 2);
   jCtx.fill();
 
   // Dark veins
-  jCtx.strokeStyle='#3a1a0a'; jCtx.lineWidth=3;
-  for(let i=0;i<8;i++){
+  jCtx.strokeStyle = '#3a1a0a'; jCtx.lineWidth = 3;
+  for (let i = 0; i < 10; i++) {
     jCtx.beginPath();
-    jCtx.moveTo((Math.random()-0.5)*200,(Math.random()-0.5)*200);
+    jCtx.moveTo((Math.random()-0.5)*200, (Math.random()-0.5)*200);
     jCtx.bezierCurveTo((Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*300,(Math.random()-0.5)*200,(Math.random()-0.5)*200);
     jCtx.stroke();
   }
 
+  // Brow ridges
+  jCtx.fillStyle = '#c4a88a';
+  jCtx.beginPath(); jCtx.ellipse(-70,-110,55,22,0.3,0,Math.PI*2); jCtx.fill();
+  jCtx.beginPath(); jCtx.ellipse( 70,-110,55,22,-0.3,0,Math.PI*2); jCtx.fill();
+
   // Eyes (hollow black pits)
-  jCtx.fillStyle='#000';
-  jCtx.beginPath(); jCtx.ellipse(-72, -45, 58, 78, -0.25, 0, Math.PI*2); jCtx.fill();
-  jCtx.beginPath(); jCtx.ellipse( 72, -45, 58, 78,  0.25, 0, Math.PI*2); jCtx.fill();
+  jCtx.fillStyle = '#000';
+  jCtx.beginPath(); jCtx.ellipse(-72,-45,58,78,-0.25,0,Math.PI*2); jCtx.fill();
+  jCtx.beginPath(); jCtx.ellipse( 72,-45,58,78, 0.25,0,Math.PI*2); jCtx.fill();
 
   // Red pupils
-  jCtx.fillStyle='rgba(180,0,0,0.8)';
-  jCtx.beginPath(); jCtx.arc(-72,-45,12,0,Math.PI*2); jCtx.fill();
-  jCtx.beginPath(); jCtx.arc( 72,-45,12,0,Math.PI*2); jCtx.fill();
+  jCtx.fillStyle = 'rgba(180,0,0,0.85)';
+  jCtx.beginPath(); jCtx.arc(-72,-45,14,0,Math.PI*2); jCtx.fill();
+  jCtx.beginPath(); jCtx.arc( 72,-45,14,0,Math.PI*2); jCtx.fill();
 
-  // Mouth (open, jagged)
-  jCtx.fillStyle='#1a0000';
+  // Nose — sunken
+  jCtx.fillStyle = '#b8967a';
+  jCtx.beginPath(); jCtx.ellipse(0, 30, 18, 12, 0, 0, Math.PI*2); jCtx.fill();
+  jCtx.fillStyle='#000';
+  jCtx.beginPath(); jCtx.ellipse(-8,34,6,5,0.3,0,Math.PI*2); jCtx.fill();
+  jCtx.beginPath(); jCtx.ellipse( 8,34,6,5,-0.3,0,Math.PI*2); jCtx.fill();
+
+  // Mouth (open, jagged teeth)
+  jCtx.fillStyle = '#1a0000';
   jCtx.beginPath(); jCtx.ellipse(0, 110, 90, 60, 0, 0, Math.PI*2); jCtx.fill();
-  jCtx.strokeStyle='#5c1a1a'; jCtx.lineWidth=4;
-  jCtx.beginPath();
-  for(let i=0;i<=12;i++){
-    const mx=-90+i*15, my=100+(i%2===0?25:-10);
-    i===0?jCtx.moveTo(mx,my):jCtx.lineTo(mx,my);
+  // teeth top
+  jCtx.fillStyle = '#d4ccc0';
+  for (let t = -3; t <= 3; t++) {
+    jCtx.beginPath();
+    jCtx.moveTo(t*24-8, 78); jCtx.lineTo(t*24+8, 78);
+    jCtx.lineTo(t*24+4, 106); jCtx.lineTo(t*24-4, 106);
+    jCtx.fill();
   }
-  jCtx.stroke();
+  // teeth bottom
+  for (let t = -3; t <= 3; t++) {
+    jCtx.beginPath();
+    jCtx.moveTo(t*24-8, 148); jCtx.lineTo(t*24+8, 148);
+    jCtx.lineTo(t*24+4, 120); jCtx.lineTo(t*24-4, 120);
+    jCtx.fill();
+  }
 
   jCtx.restore();
 
   // Red overlay
-  jCtx.fillStyle='rgba(139,0,0,0.45)'; jCtx.fillRect(0,0,w,h);
+  jCtx.fillStyle = 'rgba(139,0,0,0.4)'; jCtx.fillRect(0, 0, w, h);
 
   // Text
-  jCtx.fillStyle='#ff0000';
-  jCtx.font=`bold ${Math.floor(w*0.06)}px Courier New`;
-  jCtx.textAlign='center';
-  jCtx.textBaseline='bottom';
-  jCtx.fillText('ER HAT DICH GEFUNDEN', w/2, h-40);
+  jCtx.fillStyle = '#ff0000';
+  jCtx.font = `bold ${Math.floor(w*0.055)}px Courier New`;
+  jCtx.textAlign = 'center';
+  jCtx.textBaseline = 'bottom';
+  jCtx.fillText('HE FOUND YOU', w/2, h - 40);
 }
 
 // ============================================================
 // INTERACTION
 // ============================================================
 function interact() {
-  for(const obj of OBJECTS) {
-    if(collected.has(obj.id)) continue;
-    const d = Math.hypot(obj.tx+0.5-player.x, obj.ty+0.5-player.y);
-    if(d>1.6) continue;
+  for (const obj of OBJECTS) {
+    if (collected.has(obj.id) && !obj.isExit) continue;
+    const d = Math.hypot(obj.tx + 0.5 - player.x, obj.ty + 0.5 - player.y);
+    if (d > 1.6) continue;
 
-    if(obj.isExit) {
-      if(!inv.keycard){ showStory('Die Tür ist verschlossen. Du brauchst eine Keycard.', 3000); return; }
-      if(!inv.power)  { showStory('Kein Strom. Das elektronische Schloss funktioniert nicht.', 3000); return; }
-      if(!inv.code)   { showStory('Du brauchst den Exitcode.', 3000); return; }
+    if (obj.isExit) {
+      if (!inv.keycard) { showStory('The door is locked. You need a security keycard.', 3000); return; }
+      if (!inv.power)   { showStory('No power. The electronic lock is non-functional.', 3000); return; }
+      if (!inv.code)    { showStory('You need the exit code.', 3000); return; }
       winGame(); return;
     }
 
     collected.add(obj.id);
     TASKS[obj.task].done = true;
-    activeTask = Math.min(TASKS.length-1, obj.task+1);
+    activeTask = Math.min(TASKS.length - 1, obj.task + 1);
     updateTaskUI();
     playPickup();
 
-    if(obj.id==='keycard') inv.keycard=true;
-    if(obj.id==='generator'){ inv.power=true; monster.speed*=1.35; playGenerator(); }
-    if(obj.id==='exitcode') inv.code=true;
+    if (obj.id === 'keycard')   inv.keycard = true;
+    if (obj.id === 'generator') { inv.power = true; monster.speed *= 1.35; playGeneratorStartup(); }
+    if (obj.id === 'exitcode')  inv.code = true;
 
-    if(obj.story) showStory(obj.story, 6000);
-    if(obj.jumpscare) setTimeout(()=>{ if(!isDead) doJumpscare(); }, obj.jumpDelay||1000);
+    if (obj.story) showStory(obj.story, 6000);
+    if (obj.jumpscare) setTimeout(() => { if (!isDead) doJumpscare(); }, obj.jumpDelay || 1000);
     break;
   }
 }
@@ -455,36 +723,73 @@ function interact() {
 // GAME OVER / WIN
 // ============================================================
 function killPlayer() {
-  if(isDead||isWon) return;
-  isDead=true; gameRunning=false;
-  document.getElementById('gameOver').style.display='flex';
+  if (isDead || isWon) return;
+  isDead = true; gameRunning = false;
+  document.getElementById('gameOver').style.display = 'flex';
 }
 
 function winGame() {
-  if(isWon||isDead) return;
-  isWon=true; gameRunning=false;
-  TASKS[5].done=true; updateTaskUI();
-  document.getElementById('winScreen').style.display='flex';
+  if (isWon || isDead) return;
+  isWon = true; gameRunning = false;
+  TASKS[5].done = true; updateTaskUI();
+  document.getElementById('winScreen').style.display = 'flex';
 }
 
 // ============================================================
 // UPDATE PLAYER
 // ============================================================
+let footstepTimer = 0;
 function updatePlayer(dt) {
-  let dx=0,dy=0;
-  if(keys['a']||keys['arrowleft'])  dx-=1;
-  if(keys['d']||keys['arrowright']) dx+=1;
-  if(keys['w']||keys['arrowup'])    dy-=1;
-  if(keys['s']||keys['arrowdown'])  dy+=1;
+  let dx = 0, dy = 0;
+  if (keys['a'] || keys['arrowleft'])  dx -= 1;
+  if (keys['d'] || keys['arrowright']) dx += 1;
+  if (keys['w'] || keys['arrowup'])    dy -= 1;
+  if (keys['s'] || keys['arrowdown'])  dy += 1;
 
-  const sprint = (keys['shift']||keys[' ']) && player.stamina>0;
-  const spd = sprint ? player.speed*1.9 : player.speed;
+  const sprint = (keys['shift'] || keys[' ']) && player.stamina > 0;
+  const spd = sprint ? player.speed * 1.9 : player.speed;
 
-  if(dx&&dy){ dx*=0.707; dy*=0.707; }
-  tryMove(player, dx*spd*dt, dy*spd*dt);
+  // Direction update
+  if (dx !== 0 || dy !== 0) {
+    // Prioritize cardinal for sprite direction
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      player.dir = dx > 0 ? 'right' : 'left';
+    } else {
+      player.dir = dy > 0 ? 'down' : 'up';
+    }
+    player.moving = true;
+  } else {
+    player.moving = false;
+  }
 
-  if(sprint&&(dx||dy)){ player.stamina=Math.max(0,player.stamina-dt*45); noise=0.95; }
-  else { player.stamina=Math.min(100,player.stamina+dt*18); noise=(dx||dy)?0.35:0.05; }
+  if (dx && dy) { dx *= 0.707; dy *= 0.707; }
+  tryMove(player, dx * spd * dt, dy * spd * dt);
+
+  // Walk animation frame
+  if (player.moving) {
+    player.frameTimer += dt;
+    if (player.frameTimer >= 0.15) {
+      player.frameTimer = 0;
+      player.frame = (player.frame === 0) ? 1 : (player.frame === 1 ? 2 : 1);
+    }
+  } else {
+    player.frame = 0;
+    player.frameTimer = 0;
+  }
+
+  // Footstep sounds
+  if (player.moving) {
+    footstepTimer -= dt;
+    if (footstepTimer <= 0) {
+      playFootstep();
+      footstepTimer = sprint ? 0.22 : 0.32;
+    }
+  } else {
+    footstepTimer = 0;
+  }
+
+  if (sprint && (dx || dy)) { player.stamina = Math.max(0, player.stamina - dt * 45); noise = 0.95; }
+  else { player.stamina = Math.min(100, player.stamina + dt * 18); noise = (dx || dy) ? 0.35 : 0.05; }
 }
 
 // ============================================================
@@ -494,203 +799,808 @@ function updateMonster(dt) {
   const d = dist(monster, player);
 
   // Alert grows near player or with noise
-  const alertTarget = d<9 ? noise+0.15 : 0;
-  monster.alert += (alertTarget - monster.alert) * dt * (d<6?3:1.2);
+  const alertTarget = d < 9 ? noise + 0.15 : 0;
+  monster.alert += (alertTarget - monster.alert) * dt * (d < 6 ? 3 : 1.2);
   monster.alert = Math.max(0, Math.min(1, monster.alert));
 
-  if(monster.alert>0.25 || d<3.5) {
-    const a = Math.atan2(player.y-monster.y, player.x-monster.x);
-    const spd = monster.speed*(1+monster.alert*0.6);
-    tryMove(monster, Math.cos(a)*spd*dt, Math.sin(a)*spd*dt, 0.38);
+  if (monster.alert > 0.25 || d < 3.5) {
+    const a = Math.atan2(player.y - monster.y, player.x - monster.x);
+    const spd = monster.speed * (1 + monster.alert * 0.6);
+    tryMove(monster, Math.cos(a) * spd * dt, Math.sin(a) * spd * dt, 0.38);
   } else {
-    monster.wanderTimer-=dt;
-    if(monster.wanderTimer<=0){ monster.wanderAngle=Math.random()*Math.PI*2; monster.wanderTimer=1.5+Math.random()*2.5; }
-    tryMove(monster, Math.cos(monster.wanderAngle)*monster.speed*0.4*dt, Math.sin(monster.wanderAngle)*monster.speed*0.4*dt, 0.38);
+    monster.wanderTimer -= dt;
+    if (monster.wanderTimer <= 0) {
+      monster.wanderAngle = Math.random() * Math.PI * 2;
+      monster.wanderTimer = 1.5 + Math.random() * 2.5;
+    }
+    tryMove(monster, Math.cos(monster.wanderAngle) * monster.speed * 0.4 * dt,
+                     Math.sin(monster.wanderAngle) * monster.speed * 0.4 * dt, 0.38);
   }
 
-  // Catch
-  if(d<0.75){
-    player.sanity-=dt*70; shake=0.6;
-    if(player.sanity<=0) killPlayer();
+  // Breathing audio updates
+  if (audioCtx) updateBreathVolume(d);
+
+  // Catch player
+  if (d < 0.75) {
+    player.sanity -= dt * 70; shake = 0.6;
+    if (player.sanity <= 0) killPlayer();
   }
 
   // Jumpscare on close approach
-  jsCoreCooldown-=dt;
-  if(d<1.8 && jsCoreCooldown<=0 && monster.alert>0.6){ doJumpscare(); }
+  jsCoreCooldown -= dt;
+  if (d < 1.8 && jsCoreCooldown <= 0 && monster.alert > 0.6) { doJumpscare(); }
 
-  // Random ambient jumpscare
-  randJsCooldown-=dt;
-  if(randJsCooldown<=0 && jsCoreCooldown<=0){
-    randJsCooldown=25+Math.random()*40;
-    // flash only, no face
-    flashRed=0.45; shake=0.3;
+  // Random distant creak scheduled
+  creakTimer -= dt;
+  if (creakTimer <= 0) {
+    creakTimer = 8 + Math.random() * 12;
+    playCreak();
+  }
+
+  // Random ambient flash
+  randJsCooldown -= dt;
+  if (randJsCooldown <= 0 && jsCoreCooldown <= 0) {
+    randJsCooldown = 25 + Math.random() * 40;
+    flashRed = 0.4; shake = 0.25;
     playCreak();
   }
 
   // Heartbeat when close
-  if(d<7){ hbTimer-=dt; if(hbTimer<=0){ playHeartbeat(); hbTimer=Math.max(0.18,d/7*1.1); flashRed=Math.max(flashRed,0.12*(1-d/7)); } }
-  if(Math.random()<0.004) playCreak();
+  if (d < 7) {
+    hbTimer -= dt;
+    if (hbTimer <= 0) {
+      playHeartbeat();
+      hbTimer = Math.max(0.18, d / 7 * 1.1);
+      flashRed = Math.max(flashRed, 0.12 * (1 - d / 7));
+    }
+  }
 }
 
 // ============================================================
 // CAMERA
 // ============================================================
 function updateCamera() {
-  const cw=canvas.width, ch=canvas.height;
-  cam.x = player.x*TILE - cw/2;
-  cam.y = player.y*TILE - ch/2;
-  cam.x = Math.max(0, Math.min(COLS*TILE-cw, cam.x));
-  cam.y = Math.max(0, Math.min(ROWS*TILE-ch, cam.y));
-  if(shake>0){ cam.x+=(Math.random()-0.5)*shake*22; cam.y+=(Math.random()-0.5)*shake*22; shake*=0.80; }
+  const cw = canvas.width, ch = canvas.height;
+  cam.x = player.x * TILE - cw / 2;
+  cam.y = player.y * TILE - ch / 2;
+  cam.x = Math.max(0, Math.min(COLS * TILE - cw, cam.x));
+  cam.y = Math.max(0, Math.min(ROWS * TILE - ch, cam.y));
+  if (shake > 0) {
+    cam.x += (Math.random() - 0.5) * shake * 22;
+    cam.y += (Math.random() - 0.5) * shake * 22;
+    shake *= 0.80;
+  }
 }
 
 // ============================================================
 // DRAW MAP
 // ============================================================
 function drawMap() {
-  const c0=Math.max(0,Math.floor(cam.x/TILE));
-  const r0=Math.max(0,Math.floor(cam.y/TILE));
-  const c1=Math.min(COLS,c0+Math.ceil(canvas.width/TILE)+2);
-  const r1=Math.min(ROWS,r0+Math.ceil(canvas.height/TILE)+2);
+  const c0 = Math.max(0, Math.floor(cam.x / TILE));
+  const r0 = Math.max(0, Math.floor(cam.y / TILE));
+  const c1 = Math.min(COLS, c0 + Math.ceil(canvas.width / TILE) + 2);
+  const r1 = Math.min(ROWS, r0 + Math.ceil(canvas.height / TILE) + 2);
 
-  for(let r=r0;r<r1;r++){
-    for(let c=c0;c<c1;c++){
-      const t=MAP[r][c];
-      const sx=c*TILE-cam.x, sy=r*TILE-cam.y;
-      if(t===1){
-        ctx.fillStyle='#111118'; ctx.fillRect(sx,sy,TILE,TILE);
-        ctx.fillStyle='#0a0a10'; ctx.fillRect(sx+3,sy+3,TILE-6,TILE-6);
-        // brick lines
-        ctx.strokeStyle='#1a1a22'; ctx.lineWidth=0.8;
-        ctx.strokeRect(sx+6,sy+6,TILE-12,TILE-12);
-      } else if(t===0){
-        const shade=((r+c)%2)?'#131313':'#111111';
-        ctx.fillStyle=shade; ctx.fillRect(sx,sy,TILE,TILE);
-        ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=0.4;
-        ctx.strokeRect(sx,sy,TILE,TILE);
-      } else if(t===2){
-        // Door frame
-        ctx.fillStyle='#131313'; ctx.fillRect(sx,sy,TILE,TILE);
-        ctx.fillStyle='#2a1a0e'; ctx.fillRect(sx+10,sy,TILE-20,TILE);
-        ctx.fillStyle='#3d2a18'; ctx.fillRect(sx+13,sy+5,TILE-26,TILE-10);
-        ctx.fillStyle='#7a5c1a';
-        ctx.beginPath(); ctx.arc(sx+TILE/2+8,sy+TILE/2,3.5,0,Math.PI*2); ctx.fill();
+  for (let r = r0; r < r1; r++) {
+    for (let c = c0; c < c1; c++) {
+      const t = MAP[r][c];
+      const sx = c * TILE - cam.x, sy = r * TILE - cam.y;
+      if (t === 1) {
+        // Wall
+        ctx.fillStyle = '#111118'; ctx.fillRect(sx, sy, TILE, TILE);
+        ctx.fillStyle = '#0a0a10'; ctx.fillRect(sx+3, sy+3, TILE-6, TILE-6);
+        ctx.strokeStyle = '#1a1a22'; ctx.lineWidth = 0.8;
+        ctx.strokeRect(sx+6, sy+6, TILE-12, TILE-12);
+      } else if (t === 0) {
+        // Floor
+        const shade = ((r + c) % 2) ? '#131313' : '#111111';
+        ctx.fillStyle = shade; ctx.fillRect(sx, sy, TILE, TILE);
+        ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 0.4;
+        ctx.strokeRect(sx, sy, TILE, TILE);
+      } else if (t === 2) {
+        // Door/passage
+        ctx.fillStyle = '#131313'; ctx.fillRect(sx, sy, TILE, TILE);
+        ctx.fillStyle = '#2a1a0e'; ctx.fillRect(sx+10, sy, TILE-20, TILE);
+        ctx.fillStyle = '#3d2a18'; ctx.fillRect(sx+13, sy+5, TILE-26, TILE-10);
+        ctx.fillStyle = '#7a5c1a';
+        ctx.beginPath(); ctx.arc(sx+TILE/2+8, sy+TILE/2, 3.5, 0, Math.PI*2); ctx.fill();
       }
     }
   }
 }
 
 // ============================================================
-// DRAW OBJECTS
+// DRAW DECORATIONS
+// ============================================================
+function drawDecorations() {
+  for (const dec of DECORATIONS) {
+    const sx = dec.tx * TILE - cam.x;
+    const sy = dec.ty * TILE - cam.y;
+    if (sx < -60 || sx > canvas.width + 60 || sy < -60 || sy > canvas.height + 60) continue;
+    // Only draw if on walkable tile
+    const tx = Math.floor(dec.tx), ty = Math.floor(dec.ty);
+    if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) continue;
+    if (MAP[ty][tx] !== 0) continue;
+
+    ctx.save();
+    switch (dec.type) {
+      case 'bed':
+        // Hospital bed — gray frame
+        ctx.fillStyle = '#252525'; ctx.fillRect(sx+4, sy+6, 40, 36);
+        // Mattress
+        ctx.fillStyle = '#1e2830'; ctx.fillRect(sx+6, sy+8, 36, 28);
+        // White pillow
+        ctx.fillStyle = '#ddddd0'; ctx.fillRect(sx+8, sy+10, 14, 10);
+        // Sheet lines
+        ctx.strokeStyle = '#2a3540'; ctx.lineWidth = 0.6;
+        ctx.strokeRect(sx+6, sy+8, 36, 28);
+        ctx.beginPath(); ctx.moveTo(sx+22, sy+8); ctx.lineTo(sx+22, sy+36); ctx.stroke();
+        // Bed legs
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(sx+4, sy+38, 6, 4); ctx.fillRect(sx+38, sy+38, 6, 4);
+        ctx.fillRect(sx+4, sy+6, 6, 4);  ctx.fillRect(sx+38, sy+6, 6, 4);
+        break;
+
+      case 'desk':
+        // Wooden desk
+        ctx.fillStyle = '#2a1e10'; ctx.fillRect(sx+4, sy+8, 40, 30);
+        // Desk surface lighter
+        ctx.fillStyle = '#3a2a15'; ctx.fillRect(sx+6, sy+10, 36, 24);
+        // Desk items: paper
+        ctx.fillStyle = '#c8c4b0'; ctx.fillRect(sx+10, sy+13, 12, 9);
+        // Monitor-like object
+        ctx.fillStyle = '#111'; ctx.fillRect(sx+28, sy+12, 10, 8);
+        ctx.fillStyle = '#1a3050'; ctx.fillRect(sx+29, sy+13, 8, 6);
+        // Legs
+        ctx.fillStyle = '#1a1205';
+        ctx.fillRect(sx+4, sy+36, 5, 5); ctx.fillRect(sx+39, sy+36, 5, 5);
+        break;
+
+      case 'cabinet':
+        // Filing cabinet — tall metal box
+        ctx.fillStyle = '#1e2228'; ctx.fillRect(sx+8, sy+4, 32, 40);
+        ctx.fillStyle = '#242a30'; ctx.fillRect(sx+10, sy+6, 28, 36);
+        // Drawer lines
+        ctx.strokeStyle = '#1a1e22'; ctx.lineWidth = 1;
+        for (let d = 0; d < 3; d++) {
+          const dy2 = sy + 10 + d * 10;
+          ctx.strokeRect(sx+12, dy2, 24, 8);
+          // Drawer handle
+          ctx.fillStyle = '#4a5060';
+          ctx.fillRect(sx+22, dy2+3, 8, 2);
+        }
+        break;
+
+      case 'chair':
+        // Simple chair
+        ctx.fillStyle = '#1a1a1a';
+        // Legs
+        ctx.fillRect(sx+10, sy+28, 4, 12); ctx.fillRect(sx+34, sy+28, 4, 12);
+        ctx.fillRect(sx+10, sy+8, 4, 12);  ctx.fillRect(sx+34, sy+8, 4, 12);
+        // Seat
+        ctx.fillStyle = '#2a2018'; ctx.fillRect(sx+8, sy+26, 32, 8);
+        // Back
+        ctx.fillStyle = '#2a2018'; ctx.fillRect(sx+8, sy+6, 32, 6);
+        ctx.fillStyle = '#1a1a1a'; ctx.fillRect(sx+8, sy+12, 4, 15); ctx.fillRect(sx+36, sy+12, 4, 15);
+        break;
+    }
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// DRAW OBJECTS (interactables)
 // ============================================================
 function drawObjects() {
-  const now=Date.now();
-  for(const obj of OBJECTS){
-    if(collected.has(obj.id)&&!obj.isExit) continue;
-    const sx=obj.tx*TILE-cam.x+TILE/2;
-    const sy=obj.ty*TILE-cam.y+TILE/2;
-    if(sx<-40||sx>canvas.width+40||sy<-40||sy>canvas.height+40) continue;
+  const now = Date.now();
+  for (const obj of OBJECTS) {
+    if (collected.has(obj.id) && !obj.isExit) continue;
+    const sx = obj.tx * TILE - cam.x + TILE / 2;
+    const sy = obj.ty * TILE - cam.y + TILE / 2;
+    if (sx < -40 || sx > canvas.width + 40 || sy < -40 || sy > canvas.height + 40) continue;
 
-    const pulse=0.55+0.45*Math.sin(now/600);
+    const pulse = 0.55 + 0.45 * Math.sin(now / 600);
     ctx.save();
-    ctx.shadowColor=obj.color; ctx.shadowBlur=18*pulse;
+    ctx.shadowColor = obj.color;
+    ctx.shadowBlur = 18 * pulse;
 
-    ctx.fillStyle='rgba(0,0,0,0.65)';
-    ctx.beginPath(); ctx.arc(sx,sy,18,0,Math.PI*2); ctx.fill();
+    // Background glow circle
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2); ctx.fill();
 
-    ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle=obj.color; ctx.fillText(obj.icon,sx,sy);
+    // Icon text label instead of emoji
+    ctx.font = 'bold 9px Courier New';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = obj.color;
+    ctx.fillText(obj.icon, sx, sy);
+
     ctx.restore();
 
-    const d=Math.hypot(obj.tx+0.5-player.x,obj.ty+0.5-player.y);
-    if(d<1.8){
-      ctx.fillStyle='#ffff88'; ctx.font='11px Courier New';
-      ctx.textAlign='center'; ctx.textBaseline='bottom';
-      ctx.fillText('[E] '+obj.label, sx, sy-24);
+    const d = Math.hypot(obj.tx + 0.5 - player.x, obj.ty + 0.5 - player.y);
+    if (d < 1.8) {
+      ctx.fillStyle = '#ffff88';
+      ctx.font = '11px Courier New';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('[E] ' + obj.label, sx, sy - 24);
     }
   }
 }
 
 // ============================================================
-// DRAW PLAYER
+// DRAW CHARACTER SPRITE — Dr. Marsh
+// 4-directional with 3-frame walk animation
+// drawCharacter(ctx, x, y, dir, frame)
+// dir: 'down'(front), 'up'(back), 'left', 'right'
+// frame: 0=idle, 1=left-step, 2=right-step
+// Total height ~38px, width ~22px
 // ============================================================
-function drawPlayer() {
-  const px=player.x*TILE-cam.x, py=player.y*TILE-cam.y;
-
-  // Flashlight cone
-  const grad=ctx.createRadialGradient(px,py,TILE*0.3,px,py,TILE*LIGHT_RADIUS);
-  grad.addColorStop(0,'rgba(255,240,200,0.14)');
-  grad.addColorStop(0.45,'rgba(255,220,160,0.06)');
-  grad.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // Body
+function drawCharacter(cx, cy, dir, frame) {
   ctx.save();
-  ctx.shadowColor='#4488bb'; ctx.shadowBlur=10;
-  ctx.fillStyle='#2a4a6a';
-  ctx.beginPath(); ctx.arc(px,py,13,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#ddd';
-  ctx.beginPath(); ctx.arc(px,py,9,0,Math.PI*2); ctx.fill();
-  ctx.restore();
+  ctx.translate(cx, cy);
 
-  // Cross symbol (doctor)
-  ctx.fillStyle='#cc3333';
-  ctx.fillRect(px-1.5,py-6,3,12); ctx.fillRect(px-6,py-1.5,12,3);
+  switch (dir) {
+    case 'down':  drawCharFront(frame);   break;
+    case 'up':    drawCharBack(frame);    break;
+    case 'left':  drawCharLeft(frame);    break;
+    case 'right': drawCharRight(frame);   break;
+  }
+
+  ctx.restore();
 }
 
-// ============================================================
-// DRAW MONSTER
-// ============================================================
-function drawMonster() {
-  const sx=monster.x*TILE-cam.x, sy=monster.y*TILE-cam.y;
-  if(sx<-60||sx>canvas.width+60||sy<-60||sy>canvas.height+60) return;
+function drawCharFront(frame) {
+  // Front-facing Dr. Marsh
+  // Leg animation
+  let leftLegOff = 0, rightLegOff = 0;
+  if (frame === 1) { leftLegOff = -4; rightLegOff = 4; }
+  else if (frame === 2) { leftLegOff = 4; rightLegOff = -4; }
 
-  ctx.save();
-  ctx.shadowColor='#cc0000'; ctx.shadowBlur=25*monster.alert;
+  // Shoes
+  ctx.fillStyle = '#1a1a2a';
+  ctx.fillRect(-8 + leftLegOff, 18, 7, 4);
+  ctx.fillRect(1 + rightLegOff, 18, 7, 4);
 
-  // Body (dark, tall)
-  ctx.fillStyle=`rgba(8,4,4,${0.85+monster.alert*0.15})`;
-  ctx.beginPath(); ctx.ellipse(sx,sy,14,18,0,0,Math.PI*2); ctx.fill();
+  // Legs (dark trousers)
+  ctx.fillStyle = '#222238';
+  ctx.fillRect(-7 + leftLegOff, 8, 5, 12);
+  ctx.fillRect(2 + rightLegOff, 8, 5, 12);
+
+  // Lab coat body
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-9, -8, 18, 18);
+  // Coat center line
+  ctx.fillStyle = '#cccccc';
+  ctx.fillRect(-1, -8, 2, 18);
+  // Coat collar
+  ctx.fillStyle = '#d0d0d0';
+  ctx.beginPath();
+  ctx.moveTo(-3, -8); ctx.lineTo(0, -4); ctx.lineTo(3, -8); ctx.closePath();
+  ctx.fill();
+
+  // Arms with swing
+  let leftArmY = 0, rightArmY = 0;
+  if (frame === 1) { leftArmY = 4; rightArmY = -4; }
+  else if (frame === 2) { leftArmY = -4; rightArmY = 4; }
+
+  // Left arm
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-13, -6 + leftArmY, 5, 12);
+  ctx.fillStyle = '#d4a882'; // skin hand
+  ctx.fillRect(-13, 5 + leftArmY, 5, 4);
+
+  // Right arm
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(8, -6 + rightArmY, 5, 12);
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(8, 5 + rightArmY, 5, 4);
+
+  // Neck
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(-3, -12, 6, 5);
+
+  // Head
+  ctx.fillStyle = '#d4a882';
+  ctx.beginPath();
+  ctx.ellipse(0, -19, 9, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Dark hair
+  ctx.fillStyle = '#1a1010';
+  ctx.beginPath();
+  ctx.ellipse(0, -24, 9, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair sides
+  ctx.fillRect(-9, -26, 4, 10);
+  ctx.fillRect(5, -26, 4, 10);
 
   // Eyes
-  const blink=Math.sin(Date.now()/220);
-  if(blink>-0.8){
-    const eyeAlpha=0.6+0.4*monster.alert;
-    ctx.fillStyle=`rgba(220,20,0,${eyeAlpha})`;
-    ctx.beginPath(); ctx.arc(sx-5,sy-4,4.5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(sx+5,sy-4,4.5,0,Math.PI*2); ctx.fill();
-    // pupils
-    ctx.fillStyle='rgba(0,0,0,0.7)';
-    ctx.beginPath(); ctx.arc(sx-5,sy-4,1.8,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(sx+5,sy-4,1.8,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-6, -21, 4, 3);
+  ctx.fillRect(2, -21, 4, 3);
+  ctx.fillStyle = '#3a2a18';
+  ctx.fillRect(-5, -21, 2, 3);
+  ctx.fillRect(3, -21, 2, 3);
+
+  // Nose
+  ctx.fillStyle = '#c4927a';
+  ctx.fillRect(-1, -17, 2, 3);
+
+  // Mouth (small line)
+  ctx.fillStyle = '#a0705a';
+  ctx.fillRect(-3, -14, 6, 1.5);
+
+  // Red cross on coat pocket
+  ctx.fillStyle = '#cc2222';
+  ctx.fillRect(-3, -5, 1.5, 5);
+  ctx.fillRect(-5, -3, 5, 1.5);
+}
+
+function drawCharBack(frame) {
+  // Back-facing Dr. Marsh (back of head, hair visible)
+  let leftLegOff = 0, rightLegOff = 0;
+  if (frame === 1) { leftLegOff = -4; rightLegOff = 4; }
+  else if (frame === 2) { leftLegOff = 4; rightLegOff = -4; }
+
+  // Shoes
+  ctx.fillStyle = '#1a1a2a';
+  ctx.fillRect(-8 + leftLegOff, 18, 7, 4);
+  ctx.fillRect(1 + rightLegOff, 18, 7, 4);
+
+  // Legs
+  ctx.fillStyle = '#222238';
+  ctx.fillRect(-7 + leftLegOff, 8, 5, 12);
+  ctx.fillRect(2 + rightLegOff, 8, 5, 12);
+
+  // Lab coat body
+  ctx.fillStyle = '#d8d8d8';
+  ctx.fillRect(-9, -8, 18, 18);
+  // Coat back seam
+  ctx.strokeStyle = '#c8c8c8'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 10); ctx.stroke();
+
+  // Arms swing
+  let leftArmY = 0, rightArmY = 0;
+  if (frame === 1) { leftArmY = 4; rightArmY = -4; }
+  else if (frame === 2) { leftArmY = -4; rightArmY = 4; }
+  ctx.fillStyle = '#d8d8d8';
+  ctx.fillRect(-13, -6 + leftArmY, 5, 12);
+  ctx.fillRect(8, -6 + rightArmY, 5, 12);
+
+  // Neck
+  ctx.fillStyle = '#c8957a';
+  ctx.fillRect(-3, -12, 6, 5);
+
+  // Head — back
+  ctx.fillStyle = '#c4947a';
+  ctx.beginPath();
+  ctx.ellipse(0, -19, 9, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Full dark hair covering back of head
+  ctx.fillStyle = '#1a1010';
+  ctx.beginPath();
+  ctx.ellipse(0, -19, 9, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair bun or longer hair at bottom
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 5, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillRect(-9, -28, 4, 10);
+  ctx.fillRect(5, -28, 4, 10);
+}
+
+function drawCharLeft(frame) {
+  // Left-profile view
+  let legFwdOff = 0, legBackOff = 0;
+  if (frame === 1) { legFwdOff = -5; legBackOff = 5; }
+  else if (frame === 2) { legFwdOff = 5; legBackOff = -5; }
+
+  // Back shoe
+  ctx.fillStyle = '#15151f';
+  ctx.fillRect(-4 + legBackOff, 18, 7, 4);
+  // Front shoe
+  ctx.fillStyle = '#1a1a2a';
+  ctx.fillRect(-6 + legFwdOff, 18, 8, 4);
+
+  // Back leg
+  ctx.fillStyle = '#1e1e30';
+  ctx.fillRect(-3 + legBackOff, 8, 4, 12);
+  // Front leg
+  ctx.fillStyle = '#222240';
+  ctx.fillRect(-4 + legFwdOff, 8, 5, 12);
+
+  // Lab coat — side profile
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-6, -8, 14, 18);
+  // Coat edge (right side is front)
+  ctx.fillStyle = '#cccccc';
+  ctx.fillRect(5, -8, 3, 18);
+
+  // Back arm (behind body)
+  let backArmOff = 0, frontArmOff = 0;
+  if (frame === 1) { backArmOff = 4; frontArmOff = -4; }
+  else if (frame === 2) { backArmOff = -4; frontArmOff = 4; }
+  ctx.fillStyle = '#c8c8c8';
+  ctx.fillRect(-8, -4 + backArmOff, 4, 10);
+
+  // Front arm
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(4, -4 + frontArmOff, 4, 10);
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(4, 5 + frontArmOff, 4, 4);
+
+  // Neck
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(-1, -12, 4, 5);
+
+  // Head — side profile
+  ctx.fillStyle = '#d4a882';
+  ctx.beginPath();
+  ctx.ellipse(-1, -19, 7, 10, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hair — visible from side
+  ctx.fillStyle = '#1a1010';
+  ctx.beginPath();
+  ctx.ellipse(-1, -24, 7, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair falls on left
+  ctx.fillRect(-8, -26, 4, 14);
+
+  // Eye (one visible)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(1, -22, 3, 3);
+  ctx.fillStyle = '#3a2a18';
+  ctx.fillRect(1, -22, 1.5, 3);
+
+  // Nose (profile)
+  ctx.fillStyle = '#c4927a';
+  ctx.beginPath();
+  ctx.moveTo(5, -18); ctx.lineTo(9, -17); ctx.lineTo(6, -15);
+  ctx.closePath(); ctx.fill();
+
+  // Mouth
+  ctx.fillStyle = '#a0705a';
+  ctx.fillRect(3, -15, 4, 1.5);
+}
+
+function drawCharRight(frame) {
+  // Right-profile (mirror of left)
+  let legFwdOff = 0, legBackOff = 0;
+  if (frame === 1) { legFwdOff = -5; legBackOff = 5; }
+  else if (frame === 2) { legFwdOff = 5; legBackOff = -5; }
+
+  // Back shoe
+  ctx.fillStyle = '#15151f';
+  ctx.fillRect(-3 + legBackOff, 18, 7, 4);
+  // Front shoe
+  ctx.fillStyle = '#1a1a2a';
+  ctx.fillRect(-2 + legFwdOff, 18, 8, 4);
+
+  // Back leg
+  ctx.fillStyle = '#1e1e30';
+  ctx.fillRect(-1 + legBackOff, 8, 4, 12);
+  // Front leg
+  ctx.fillStyle = '#222240';
+  ctx.fillRect(-1 + legFwdOff, 8, 5, 12);
+
+  // Lab coat
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-8, -8, 14, 18);
+  ctx.fillStyle = '#cccccc';
+  ctx.fillRect(-8, -8, 3, 18);
+
+  // Back arm
+  let backArmOff = 0, frontArmOff = 0;
+  if (frame === 1) { backArmOff = 4; frontArmOff = -4; }
+  else if (frame === 2) { backArmOff = -4; frontArmOff = 4; }
+  ctx.fillStyle = '#c8c8c8';
+  ctx.fillRect(4, -4 + backArmOff, 4, 10);
+
+  // Front arm
+  ctx.fillStyle = '#e0e0e0';
+  ctx.fillRect(-8, -4 + frontArmOff, 4, 10);
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(-8, 5 + frontArmOff, 4, 4);
+
+  // Neck
+  ctx.fillStyle = '#d4a882';
+  ctx.fillRect(-3, -12, 4, 5);
+
+  // Head — right profile
+  ctx.fillStyle = '#d4a882';
+  ctx.beginPath();
+  ctx.ellipse(1, -19, 7, 10, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hair
+  ctx.fillStyle = '#1a1010';
+  ctx.beginPath();
+  ctx.ellipse(1, -24, 7, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hair right side
+  ctx.fillRect(4, -26, 4, 14);
+
+  // Eye
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-4, -22, 3, 3);
+  ctx.fillStyle = '#3a2a18';
+  ctx.fillRect(-3, -22, 1.5, 3);
+
+  // Nose (profile right)
+  ctx.fillStyle = '#c4927a';
+  ctx.beginPath();
+  ctx.moveTo(-5, -18); ctx.lineTo(-9, -17); ctx.lineTo(-6, -15);
+  ctx.closePath(); ctx.fill();
+
+  // Mouth
+  ctx.fillStyle = '#a0705a';
+  ctx.fillRect(-7, -15, 4, 1.5);
+}
+
+// ============================================================
+// DRAW PLAYER (with directional flashlight cone)
+// ============================================================
+function drawPlayer() {
+  const px = player.x * TILE - cam.x;
+  const py = player.y * TILE - cam.y;
+
+  // --- Directional Flashlight Cone ---
+  let coneAngle = 0;
+  switch (player.dir) {
+    case 'down':  coneAngle = Math.PI / 2;  break;
+    case 'up':    coneAngle = -Math.PI / 2; break;
+    case 'left':  coneAngle = Math.PI;      break;
+    case 'right': coneAngle = 0;            break;
   }
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(coneAngle);
+
+  // Cone gradient: elongated ellipse rotated in movement direction
+  const coneLen = TILE * LIGHT_RADIUS;
+  const coneW = TILE * 2.5;
+  const grad = ctx.createRadialGradient(0, 0, TILE * 0.2, coneLen * 0.5, 0, coneLen);
+  grad.addColorStop(0, 'rgba(255,240,200,0.20)');
+  grad.addColorStop(0.35, 'rgba(255,225,170,0.10)');
+  grad.addColorStop(0.7, 'rgba(255,210,140,0.04)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.beginPath();
+  ctx.ellipse(coneLen * 0.45, 0, coneLen * 0.7, coneW, 0, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+
+  // --- Character Sprite ---
+  ctx.save();
+  ctx.shadowColor = '#4488bb';
+  ctx.shadowBlur = 10;
+  drawCharacter(px, py, player.dir, player.frame);
   ctx.restore();
 }
 
 // ============================================================
-// DARKNESS OVERLAY
+// DRAW MONSTER — tall skeletal figure
 // ============================================================
-function drawDarkness() {
-  const px=player.x*TILE-cam.x, py=player.y*TILE-cam.y;
-  const grad=ctx.createRadialGradient(px,py,TILE*0.4,px,py,TILE*LIGHT_RADIUS);
-  grad.addColorStop(0,'rgba(0,0,0,0)');
-  grad.addColorStop(0.38,'rgba(0,0,0,0.25)');
-  grad.addColorStop(0.65,'rgba(0,0,0,0.72)');
-  grad.addColorStop(1,'rgba(0,0,0,0.98)');
-  ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+function drawMonster() {
+  const sx = monster.x * TILE - cam.x;
+  const sy = monster.y * TILE - cam.y;
+  if (sx < -80 || sx > canvas.width + 80 || sy < -80 || sy > canvas.height + 80) return;
 
-  // Red flash
-  if(flashRed>0.005){
-    ctx.fillStyle=`rgba(139,0,0,${flashRed*0.65})`;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    flashRed*=0.86;
+  const now = Date.now();
+  const sway = Math.sin(now / 320) * 3;  // subtle swaying
+  const alertGlow = monster.alert;
+
+  ctx.save();
+  ctx.translate(sx, sy + sway * 0.5);
+  ctx.shadowColor = '#cc0000';
+  ctx.shadowBlur = 20 + 25 * alertGlow;
+
+  // === LEGS ===
+  const legSwing = Math.sin(now / 200) * 8;
+  // Left leg
+  ctx.strokeStyle = '#0a0507'; ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(-6, 14);
+  ctx.quadraticCurveTo(-10 + legSwing, 32, -8 + legSwing * 0.5, 48);
+  ctx.stroke();
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(6, 14);
+  ctx.quadraticCurveTo(10 - legSwing, 32, 8 - legSwing * 0.5, 48);
+  ctx.stroke();
+
+  // Feet (elongated bony)
+  ctx.fillStyle = '#090406';
+  ctx.beginPath(); ctx.ellipse(-8 + legSwing * 0.5, 48, 8, 3, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(8 - legSwing * 0.5, 48, 8, 3, -0.3, 0, Math.PI * 2); ctx.fill();
+
+  // === TORSO — very tall, thin ===
+  ctx.fillStyle = `rgba(8,4,4,${0.88 + alertGlow * 0.12})`;
+  ctx.beginPath();
+  ctx.moveTo(-10, -30);
+  ctx.lineTo(-13, -5);
+  ctx.lineTo(-8, 14);
+  ctx.lineTo(8, 14);
+  ctx.lineTo(13, -5);
+  ctx.lineTo(10, -30);
+  ctx.closePath();
+  ctx.fill();
+
+  // === VISIBLE RIBS ===
+  ctx.strokeStyle = `rgba(22,10,10,${0.7 + alertGlow * 0.3})`;
+  ctx.lineWidth = 1.2;
+  for (let r = 0; r < 5; r++) {
+    const ry = -20 + r * 7;
+    // Left rib
+    ctx.beginPath();
+    ctx.moveTo(-2, ry);
+    ctx.quadraticCurveTo(-15, ry + 2, -14, ry + 6);
+    ctx.stroke();
+    // Right rib
+    ctx.beginPath();
+    ctx.moveTo(2, ry);
+    ctx.quadraticCurveTo(15, ry + 2, 14, ry + 6);
+    ctx.stroke();
   }
 
-  // Low sanity grain
-  if(player.sanity<50){
-    const t=(50-player.sanity)/50;
-    ctx.fillStyle=`rgba(20,0,0,${t*0.35})`;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+  // === SPINE LINE ===
+  ctx.strokeStyle = 'rgba(30,12,12,0.8)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, -28); ctx.lineTo(0, 12); ctx.stroke();
+
+  // === ARMS — long, bony, dangling ===
+  const armSway = Math.sin(now / 400) * 5;
+  ctx.strokeStyle = '#0a0507'; ctx.lineWidth = 4;
+  // Left arm — upper
+  ctx.beginPath();
+  ctx.moveTo(-12, -22);
+  ctx.quadraticCurveTo(-22, -10 + armSway, -18, 8 + armSway);
+  ctx.stroke();
+  // Left forearm
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-18, 8 + armSway);
+  ctx.quadraticCurveTo(-28, 20 + armSway, -24, 34 + armSway);
+  ctx.stroke();
+  // Left fingers
+  ctx.lineWidth = 1.5;
+  for (let f = 0; f < 4; f++) {
+    ctx.beginPath();
+    ctx.moveTo(-24 + f * 2, 34 + armSway);
+    ctx.lineTo(-26 + f * 3, 44 + armSway + f);
+    ctx.stroke();
+  }
+
+  // Right arm — upper
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(12, -22);
+  ctx.quadraticCurveTo(22, -10 - armSway, 18, 8 - armSway);
+  ctx.stroke();
+  // Right forearm
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(18, 8 - armSway);
+  ctx.quadraticCurveTo(28, 20 - armSway, 24, 34 - armSway);
+  ctx.stroke();
+  // Right fingers
+  ctx.lineWidth = 1.5;
+  for (let f = 0; f < 4; f++) {
+    ctx.beginPath();
+    ctx.moveTo(24 - f * 2, 34 - armSway);
+    ctx.lineTo(22 + f * 3, 44 - armSway + f);
+    ctx.stroke();
+  }
+
+  // === NECK — elongated ===
+  ctx.fillStyle = '#080305';
+  ctx.beginPath();
+  ctx.moveTo(-5, -30); ctx.lineTo(5, -30); ctx.lineTo(4, -40); ctx.lineTo(-4, -40);
+  ctx.closePath(); ctx.fill();
+
+  // === HEAD — elongated skull ===
+  ctx.fillStyle = `rgba(10,5,5,${0.9 + alertGlow * 0.1})`;
+  ctx.beginPath();
+  ctx.ellipse(0, -52, 13, 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Skull cracks
+  ctx.strokeStyle = 'rgba(35,15,15,0.7)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(-3, -60); ctx.lineTo(0, -54); ctx.lineTo(4, -60); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-8, -55); ctx.lineTo(-3, -50); ctx.stroke();
+
+  // === EYES — glowing red ===
+  const blink = Math.sin(now / 220);
+  if (blink > -0.85) {
+    const eyeAlpha = 0.55 + 0.45 * alertGlow;
+    const eyeGlow = ctx.createRadialGradient(-6, -54, 0, -6, -54, 8);
+    eyeGlow.addColorStop(0, `rgba(255,30,0,${eyeAlpha})`);
+    eyeGlow.addColorStop(1, 'rgba(140,0,0,0)');
+    ctx.fillStyle = eyeGlow;
+    ctx.beginPath(); ctx.arc(-6, -54, 8, 0, Math.PI * 2); ctx.fill();
+
+    const eyeGlow2 = ctx.createRadialGradient(6, -54, 0, 6, -54, 8);
+    eyeGlow2.addColorStop(0, `rgba(255,30,0,${eyeAlpha})`);
+    eyeGlow2.addColorStop(1, 'rgba(140,0,0,0)');
+    ctx.fillStyle = eyeGlow2;
+    ctx.beginPath(); ctx.arc(6, -54, 8, 0, Math.PI * 2); ctx.fill();
+
+    // Pupils
+    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+    ctx.beginPath(); ctx.arc(-6, -54, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, -54, 2.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // === JAW / TEETH visible when alert ===
+  if (alertGlow > 0.3) {
+    const jawOpen = (alertGlow - 0.3) / 0.7 * 6;
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.ellipse(0, -42 + jawOpen, 7, 3 + jawOpen * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Teeth
+    ctx.fillStyle = `rgba(180,170,160,${(alertGlow - 0.3) / 0.7})`;
+    for (let t = -2; t <= 2; t++) {
+      ctx.beginPath();
+      ctx.moveTo(t * 3 - 1, -44); ctx.lineTo(t * 3 + 1, -44);
+      ctx.lineTo(t * 3 + 0.5, -42 + jawOpen); ctx.lineTo(t * 3 - 0.5, -42 + jawOpen);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+// ============================================================
+// DARKNESS OVERLAY + FLASHLIGHT
+// ============================================================
+function drawDarkness() {
+  const px = player.x * TILE - cam.x;
+  const py = player.y * TILE - cam.y;
+
+  // Base darkness
+  const grad = ctx.createRadialGradient(px, py, TILE * 0.4, px, py, TILE * LIGHT_RADIUS);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.38, 'rgba(0,0,0,0.25)');
+  grad.addColorStop(0.65, 'rgba(0,0,0,0.75)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.98)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Red flash
+  if (flashRed > 0.005) {
+    ctx.fillStyle = `rgba(139,0,0,${flashRed * 0.62})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    flashRed *= 0.86;
+  }
+
+  // Low sanity tint
+  if (player.sanity < 50) {
+    const t = (50 - player.sanity) / 50;
+    ctx.fillStyle = `rgba(20,0,0,${t * 0.32})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+// ============================================================
+// BREATHING VIGNETTE (low sanity visual effect)
+// ============================================================
+function updateBreatheEffect(dt) {
+  if (player.sanity < 50) {
+    breatheVigTimer += dt;
+    const breatheRate = 0.8 + (50 - player.sanity) / 50 * 1.8; // faster when low
+    breathePhase = Math.sin(breatheVigTimer * breatheRate * Math.PI * 2);
+    const sanityFactor = (50 - player.sanity) / 50;
+    const vigOpacity = sanityFactor * (0.45 + 0.35 * breathePhase);
+    document.getElementById('breatheVignette').style.opacity = Math.max(0, vigOpacity);
+  } else {
+    document.getElementById('breatheVignette').style.opacity = 0;
+    breatheVigTimer = 0;
   }
 }
 
@@ -698,12 +1608,13 @@ function drawDarkness() {
 // DRAW DANGER BORDER
 // ============================================================
 function drawDangerBorder() {
-  const d=dist(monster,player);
-  if(d<7){
-    const i=(7-d)/7;
-    document.getElementById('dangerBorder').style.boxShadow=`inset 0 0 ${Math.floor(80*i)}px ${Math.floor(40*i)}px rgba(180,0,0,${(i*0.55).toFixed(2)})`;
+  const d = dist(monster, player);
+  if (d < 7) {
+    const intensity = (7 - d) / 7;
+    document.getElementById('dangerBorder').style.boxShadow =
+      `inset 0 0 ${Math.floor(80 * intensity)}px ${Math.floor(40 * intensity)}px rgba(180,0,0,${(intensity * 0.55).toFixed(2)})`;
   } else {
-    document.getElementById('dangerBorder').style.boxShadow='none';
+    document.getElementById('dangerBorder').style.boxShadow = 'none';
   }
 }
 
@@ -711,27 +1622,35 @@ function drawDangerBorder() {
 // DRAW HUD BARS
 // ============================================================
 function drawHUD() {
-  document.getElementById('sanityFill').style.width=Math.max(0,player.sanity)+'%';
-  document.getElementById('staminaFill').style.width=player.stamina+'%';
+  document.getElementById('sanityFill').style.width = Math.max(0, player.sanity) + '%';
+  document.getElementById('staminaFill').style.width = player.stamina + '%';
 }
 
 // ============================================================
 // GAME LOOP
 // ============================================================
 function gameLoop(ts) {
-  if(!gameRunning) return;
-  const dt=Math.min((ts-lastTs)/1000, 0.05);
-  lastTs=ts;
+  if (!gameRunning) return;
+  const dt = Math.min((ts - lastTs) / 1000, 0.05);
+  lastTs = ts;
 
   updatePlayer(dt);
   updateMonster(dt);
   updateCamera();
+  updateBreatheEffect(dt);
 
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Clear
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // World
   drawMap();
+  drawDecorations();
   drawObjects();
   drawMonster();
   drawPlayer();
+
+  // Post-processing
   drawDarkness();
   drawDangerBorder();
   drawHUD();
@@ -743,38 +1662,42 @@ function gameLoop(ts) {
 // START
 // ============================================================
 function startGame() {
-  document.getElementById('intro').style.display='none';
+  document.getElementById('intro').style.display = 'none';
   initAudio();
 
-  canvas=document.getElementById('canvas');
-  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-  ctx=canvas.getContext('2d');
+  canvas = document.getElementById('canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx = canvas.getContext('2d');
 
-  jCanvas=document.getElementById('jumpCanvas');
-  jCanvas.width=window.innerWidth; jCanvas.height=window.innerHeight;
-  jCtx=jCanvas.getContext('2d');
+  jCanvas = document.getElementById('jumpCanvas');
+  jCanvas.width = window.innerWidth;
+  jCanvas.height = window.innerHeight;
+  jCtx = jCanvas.getContext('2d');
 
-  document.addEventListener('keydown',e=>{
-    keys[e.key.toLowerCase()]=true;
-    if(e.key.toLowerCase()==='t'){
-      taskVisible=!taskVisible;
-      document.getElementById('taskPanel').classList.toggle('hidden',!taskVisible);
+  document.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key.toLowerCase() === 't') {
+      taskVisible = !taskVisible;
+      document.getElementById('taskPanel').classList.toggle('hidden', !taskVisible);
     }
-    if(e.key.toLowerCase()==='e') interact();
+    if (e.key.toLowerCase() === 'e') interact();
   });
-  document.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
-  window.addEventListener('resize',()=>{
-    canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-    jCanvas.width=window.innerWidth; jCanvas.height=window.innerHeight;
+  document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    jCanvas.width = window.innerWidth;
+    jCanvas.height = window.innerHeight;
   });
 
   updateTaskUI();
 
   // Opening story
-  setTimeout(()=>showStory('Dr. Marsh... du musst hier raus. Die Sicherheitsanlage hat alles verriegelt. Beginne mit der Nachtschicht-Notiz im Ostflügel.', 7000), 800);
+  setTimeout(() => showStory('Dr. Marsh... you need to get out. The security system has locked everything down. Start with the night-shift note in the East Wing.', 7000), 800);
 
-  gameRunning=true;
-  lastTs=performance.now();
+  gameRunning = true;
+  lastTs = performance.now();
   requestAnimationFrame(gameLoop);
 }
 </script>
