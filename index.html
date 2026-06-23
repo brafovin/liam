@@ -186,6 +186,7 @@ const TILE = 48;
 const COLS = 28;
 const ROWS = 22;
 const LIGHT_RADIUS = 4.2; // tiles
+const ZOOM = 2.0;         // camera zoom (FOV 75)
 
 // ============================================================
 // MAP  (0=floor, 1=wall, 2=door/passage)
@@ -857,26 +858,18 @@ function updateMonster(dt) {
 // ============================================================
 function updateCamera() {
   const cw = canvas.width, ch = canvas.height;
-  const mapW = COLS * TILE, mapH = ROWS * TILE;
 
-  // Target: center on player
-  let tx = player.x * TILE - cw / 2;
-  let ty = player.y * TILE - ch / 2;
-
-  // If map is smaller than viewport, center the map instead of clamping to 0
-  if (mapW <= cw) tx = (mapW - cw) / 2;
-  else tx = Math.max(0, Math.min(mapW - cw, tx));
-
-  if (mapH <= ch) ty = (mapH - ch) / 2;
-  else ty = Math.max(0, Math.min(mapH - ch, ty));
+  // Always center on player — no edge clamping (black at map borders)
+  const tx = player.x * TILE - cw / (2 * ZOOM);
+  const ty = player.y * TILE - ch / (2 * ZOOM);
 
   // Smooth follow (lerp)
   cam.x += (tx - cam.x) * 0.14;
   cam.y += (ty - cam.y) * 0.14;
 
   if (shake > 0) {
-    cam.x += (Math.random() - 0.5) * shake * 22;
-    cam.y += (Math.random() - 0.5) * shake * 22;
+    cam.x += (Math.random() - 0.5) * shake * 10;
+    cam.y += (Math.random() - 0.5) * shake * 10;
     shake *= 0.80;
   }
 }
@@ -1569,11 +1562,13 @@ function drawMonster() {
 // DARKNESS OVERLAY + FLASHLIGHT
 // ============================================================
 function drawDarkness() {
-  const px = player.x * TILE - cam.x;
-  const py = player.y * TILE - cam.y;
+  // Player is always at screen center when zoomed
+  const px = canvas.width  / 2;
+  const py = canvas.height / 2;
+  const lightR = TILE * LIGHT_RADIUS * ZOOM;
 
   // Base darkness
-  const grad = ctx.createRadialGradient(px, py, TILE * 0.4, px, py, TILE * LIGHT_RADIUS);
+  const grad = ctx.createRadialGradient(px, py, TILE * 0.4 * ZOOM, px, py, lightR);
   grad.addColorStop(0, 'rgba(0,0,0,0)');
   grad.addColorStop(0.38, 'rgba(0,0,0,0.25)');
   grad.addColorStop(0.65, 'rgba(0,0,0,0.75)');
@@ -1651,14 +1646,17 @@ function gameLoop(ts) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // World
+  // World (zoomed)
+  ctx.save();
+  ctx.scale(ZOOM, ZOOM);
   drawMap();
   drawDecorations();
   drawObjects();
   drawMonster();
   drawPlayer();
+  ctx.restore();
 
-  // Post-processing
+  // Screen-space post-processing (not zoomed)
   drawDarkness();
   drawDangerBorder();
   drawHUD();
