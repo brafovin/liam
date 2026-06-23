@@ -119,19 +119,19 @@ canvas { display:block; }
 <!-- INTRO -->
 <div id="intro">
   <h1>THE LAST SHIFT</h1>
-  <div class="sub">ST. DAMIEN'S HOSPITAL — 2:47 AM</div>
-  <div class="warn">WARNING: Contains jumpscares and disturbing content</div>
+  <div class="sub">ST. DAMIEN KRANKENHAUS — 2:47 UHR</div>
+  <div class="warn">⚠ WARNUNG: Enthält Jumpscares und verstörende Inhalte</div>
   <div class="story">
-    You are Dr. Elena Marsh — physician at St. Damien's Hospital.<br>
-    You worked too long. You should have left hours ago.<br>
-    Now the lights are out. The doors are locked.<br><br>
-    <span style="color:#8b0000">And something is in here with you.</span>
+    Du bist Dr. Elena Marsh — Ärztin im St. Damien Krankenhaus.<br>
+    Du hast zu lange gearbeitet. Du hättest längst gehen sollen.<br>
+    Jetzt sind die Lichter aus. Die Türen sind verriegelt.<br><br>
+    <span style="color:#8b0000">Und irgendetwas ist hier drinnen mit dir.</span>
   </div>
   <div class="controls">
-    WASD / Arrow Keys — Move &nbsp;|&nbsp; SHIFT — Sprint &nbsp;|&nbsp; E — Interact<br>
-    T — Toggle Task List &nbsp;|&nbsp; (Headphones recommended)
+    WASD / Pfeiltasten — Bewegen &nbsp;|&nbsp; SHIFT — Sprinten &nbsp;|&nbsp; E — Interagieren<br>
+    T — Aufgabenliste ein/aus &nbsp;|&nbsp; (Kopfhörer empfohlen)
   </div>
-  <button onclick="startGame()">BEGIN THE LAST SHIFT</button>
+  <button onclick="startGame()">LETZTE SCHICHT BEGINNEN</button>
 </div>
 
 <!-- MAIN CANVAS -->
@@ -139,16 +139,16 @@ canvas { display:block; }
 
 <!-- TASK PANEL -->
 <div id="taskPanel">
-  <h3>&#9658; OBJECTIVES</h3>
+  <h3>&#9658; AUFGABEN</h3>
   <div id="taskItems"></div>
-  <div id="taskHint">[T] TOGGLE LIST</div>
+  <div id="taskHint">[T] EIN/AUSBLENDEN</div>
 </div>
 
 <!-- HUD -->
 <div id="hud">
-  <div class="bar-label" id="sanityLabel">SANITY</div>
+  <div class="bar-label" id="sanityLabel">VERSTAND</div>
   <div class="bar-bg"><div class="bar-fill" id="sanityFill" style="width:100%"></div></div>
-  <div class="bar-label" id="staminaLabel">STAMINA</div>
+  <div class="bar-label" id="staminaLabel">AUSDAUER</div>
   <div class="bar-bg"><div class="bar-fill" id="staminaFill" style="width:100%"></div></div>
 </div>
 
@@ -166,18 +166,18 @@ canvas { display:block; }
 
 <!-- GAME OVER -->
 <div id="gameOver">
-  <h2>YOU DIE</h2>
-  <p>Patient 7 found you. At dawn, the cleaning staff finds your name badge in the corridor — nothing more.</p>
-  <button class="overlay-btn" onclick="location.reload()">Try Again</button>
+  <h2>DU STIRBST</h2>
+  <p>Patient 7 hat dich gefunden. Im Morgengrauen findet das Reinigungspersonal dein Namensschild im Korridor — mehr nicht.</p>
+  <button class="overlay-btn" onclick="location.reload()">Nochmal versuchen</button>
 </div>
 
 <!-- WIN -->
 <div id="winScreen">
-  <h2>ESCAPED</h2>
-  <p>You stumble into the cold night air. Behind you, the hospital stands dark and silent. You never look back.<br><br>
-  You try to tell yourself it is over.<br><br>
-  <span style="color:#444">But sometimes, late at night, you can still hear it breathing.</span></p>
-  <button class="overlay-btn" onclick="location.reload()">Play Again</button>
+  <h2>ENTKOMMEN</h2>
+  <p>Du stolperst in die kalte Nachtluft. Hinter dir steht das Krankenhaus — dunkel und still. Du schaust nie zurück.<br><br>
+  Du versuchst dir einzureden, dass es vorbei ist.<br><br>
+  <span style="color:#444">Aber manchmal, spät in der Nacht, kannst du es noch atmen hören.</span></p>
+  <button class="overlay-btn" onclick="location.reload()">Nochmal spielen</button>
 </div>
 
 <script>
@@ -222,12 +222,12 @@ const MAP = [
 // TASKS
 // ============================================================
 const TASKS = [
-  { text:'Read the night-shift note (East Wing)', done:false },
-  { text:'Find security keycard (Room 112)', done:false },
-  { text:'Start the generator (Basement)', done:false },
-  { text:'Search the Director\'s office', done:false },
-  { text:'Find the exit code', done:false },
-  { text:'Escape through the main exit', done:false },
+  { text:'Nachtschicht-Notiz lesen (Ostflügel)', done:false },
+  { text:'Sicherheitskeycard finden (Zimmer 112)', done:false },
+  { text:'Generator starten (Keller)', done:false },
+  { text:'Direktorsbüro durchsuchen', done:false },
+  { text:'Exitcode finden', done:false },
+  { text:'Durch den Notausgang fliehen', done:false },
 ];
 
 // ============================================================
@@ -235,38 +235,38 @@ const TASKS = [
 // ============================================================
 const OBJECTS = [
   {
-    id:'note1', tx:6, ty:2, icon:'NOTE', label:'NOTE',
+    id:'note1', tx:6, ty:2, icon:'NOTIZ', label:'Notiz',
     task:0, color:'#e8e860',
-    story:'"Patient 7 was discharged three weeks ago. But the night staff keeps hearing him in the East Wing. Room 112. We checked. It is empty. I do not understand." — Nurse Agnes',
+    story:'"Patient 7 wurde vor drei Wochen entlassen. Aber das Nachtpersonal hört ihn weiterhin im Ostflügel. Zimmer 112. Wir haben nachgesehen. Es ist leer. Ich verstehe das nicht." — Schwester Agnes',
     jumpscare:false,
   },
   {
     id:'keycard', tx:23, ty:3, icon:'KEY', label:'Keycard',
     task:1, color:'#60e8e8',
-    story:'You find the security card. Someone has written in blood: "RUN".',
+    story:'Du findest die Sicherheitskarte. Jemand hat mit Blut darauf geschrieben: "LAUF".',
     jumpscare:false,
   },
   {
     id:'generator', tx:5, ty:11, icon:'GEN', label:'Generator',
     task:2, color:'#e8a030',
-    story:'The generator rattles and kicks on. Emergency lights flicker. From the corridor you hear a long, ragged scream — not human.',
+    story:'Der Generator rattert und springt an. Notlichter flackern auf. Aus dem Korridor hörst du ein langes, raues Schreien — kein menschliches.',
     jumpscare:true,
     jumpDelay:1800,
   },
   {
-    id:'dirFiles', tx:22, ty:11, icon:'FILE', label:'Files',
+    id:'dirFiles', tx:22, ty:11, icon:'AKTEN', label:'Akten',
     task:3, color:'#e8e860',
-    story:'"Patient 7 — John Doe. Admitted: March 3rd. Cause of death: cardiac arrest. Time of death: 23:47. The body was never collected. We buried him in the hospital garden. God forgive us." — Dr. Holz',
+    story:'"Patient 7 — Johannes Doe. Eingeliefert: 3. März. Todesursache: Herzstillstand. Todeszeitpunkt: 23:47 Uhr. Der Körper wurde nie abgeholt. Wir haben ihn im Krankenhausgarten begraben. Gott vergebe uns." — Dr. Holz',
     jumpscare:false,
   },
   {
-    id:'exitcode', tx:23, ty:19, icon:'CODE', label:'Exit Code',
+    id:'exitcode', tx:23, ty:19, icon:'CODE', label:'Exitcode',
     task:4, color:'#e060e8',
-    story:'On the wall, written in something dark: EXIT — 7 7 4 9. Below it: "HE KNOWS YOU ARE HERE."',
+    story:'An der Wand, in etwas Dunklem geschrieben: AUSGANG — 7 7 4 9. Darunter: "ER WEISS, DASS DU HIER BIST."',
     jumpscare:false,
   },
   {
-    id:'exit', tx:13, ty:20, icon:'EXIT', label:'EMERGENCY EXIT',
+    id:'exit', tx:13, ty:20, icon:'AUSGANG', label:'NOTAUSGANG',
     task:5, color:'#60e860',
     story:'',
     isExit:true,
@@ -684,7 +684,7 @@ function drawJumpscareFrame() {
   jCtx.font = `bold ${Math.floor(w*0.055)}px Courier New`;
   jCtx.textAlign = 'center';
   jCtx.textBaseline = 'bottom';
-  jCtx.fillText('HE FOUND YOU', w/2, h - 40);
+  jCtx.fillText('ER HAT DICH GEFUNDEN', w/2, h - 40);
 }
 
 // ============================================================
@@ -697,9 +697,9 @@ function interact() {
     if (d > 1.6) continue;
 
     if (obj.isExit) {
-      if (!inv.keycard) { showStory('The door is locked. You need a security keycard.', 3000); return; }
-      if (!inv.power)   { showStory('No power. The electronic lock is non-functional.', 3000); return; }
-      if (!inv.code)    { showStory('You need the exit code.', 3000); return; }
+      if (!inv.keycard) { showStory('Die Tür ist verschlossen. Du brauchst eine Sicherheitskeycard.', 3000); return; }
+      if (!inv.power)   { showStory('Kein Strom. Das elektronische Schloss funktioniert nicht.', 3000); return; }
+      if (!inv.code)    { showStory('Du brauchst den Exitcode.', 3000); return; }
       winGame(); return;
     }
 
@@ -861,10 +861,23 @@ function updateMonster(dt) {
 // ============================================================
 function updateCamera() {
   const cw = canvas.width, ch = canvas.height;
-  cam.x = player.x * TILE - cw / 2;
-  cam.y = player.y * TILE - ch / 2;
-  cam.x = Math.max(0, Math.min(COLS * TILE - cw, cam.x));
-  cam.y = Math.max(0, Math.min(ROWS * TILE - ch, cam.y));
+  const mapW = COLS * TILE, mapH = ROWS * TILE;
+
+  // Target: center on player
+  let tx = player.x * TILE - cw / 2;
+  let ty = player.y * TILE - ch / 2;
+
+  // If map is smaller than viewport, center the map instead of clamping to 0
+  if (mapW <= cw) tx = (mapW - cw) / 2;
+  else tx = Math.max(0, Math.min(mapW - cw, tx));
+
+  if (mapH <= ch) ty = (mapH - ch) / 2;
+  else ty = Math.max(0, Math.min(mapH - ch, ty));
+
+  // Smooth follow (lerp)
+  cam.x += (tx - cam.x) * 0.14;
+  cam.y += (ty - cam.y) * 0.14;
+
   if (shake > 0) {
     cam.x += (Math.random() - 0.5) * shake * 22;
     cam.y += (Math.random() - 0.5) * shake * 22;
@@ -1694,7 +1707,7 @@ function startGame() {
   updateTaskUI();
 
   // Opening story
-  setTimeout(() => showStory('Dr. Marsh... you need to get out. The security system has locked everything down. Start with the night-shift note in the East Wing.', 7000), 800);
+  setTimeout(() => showStory('Dr. Marsh... du musst hier raus. Die Sicherheitsanlage hat alles verriegelt. Beginne mit der Nachtschicht-Notiz im Ostflügel.', 7000), 800);
 
   gameRunning = true;
   lastTs = performance.now();
