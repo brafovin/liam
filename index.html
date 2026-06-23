@@ -273,6 +273,23 @@ const OBJECTS = [
 ];
 
 // ============================================================
+// ROOM LABELS
+// cx/cy in tile units (center of the sign)
+// ============================================================
+const ROOMS = [
+  { num:'101', cx:3.5,  cy:1.6 },
+  { num:'102', cx:10.5, cy:1.6 },
+  { num:'103', cx:20.5, cy:1.6 },
+  { num:'104', cx:6.5,  cy:10.6 },
+  { num:'105', cx:17.0, cy:10.6 },
+  { num:'106', cx:23.5, cy:10.6 },
+  { num:'107', cx:3.5,  cy:18.6 },
+  { num:'108', cx:10.5, cy:18.6 },
+  { num:'109', cx:17.5, cy:18.6 },
+  { num:'110', cx:24.0, cy:18.6 },
+];
+
+// ============================================================
 // STATIC ROOM DECORATIONS  (visual only, no collision)
 // Each: { tx, ty, type }
 // Types: 'bed','desk','cabinet','chair'
@@ -996,6 +1013,32 @@ function drawDecorations() {
 }
 
 // ============================================================
+// DRAW ROOM LABELS
+// ============================================================
+function drawRoomLabels() {
+  for (const r of ROOMS) {
+    const sx = r.cx * TILE - cam.x;
+    const sy = r.cy * TILE - cam.y;
+    if (sx < -60 || sx > canvas.width / ZOOM + 60 || sy < -20 || sy > canvas.height / ZOOM + 20) continue;
+
+    const w = 38, h = 14;
+    // Plaque background
+    ctx.fillStyle = 'rgba(10,10,14,0.82)';
+    ctx.fillRect(sx - w / 2, sy - h / 2, w, h);
+    ctx.strokeStyle = '#3a3a44';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(sx - w / 2, sy - h / 2, w, h);
+
+    // Room number text
+    ctx.fillStyle = '#888899';
+    ctx.font = 'bold 9px Courier New';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('ZI. ' + r.num, sx, sy);
+  }
+}
+
+// ============================================================
 // DRAW OBJECTS (interactables)
 // ============================================================
 function drawObjects() {
@@ -1656,6 +1699,7 @@ function gameLoop(ts) {
   ctx.scale(ZOOM, ZOOM);
   drawMap();
   drawDecorations();
+  drawRoomLabels();
   drawObjects();
   drawMonster();
   drawPlayer();
