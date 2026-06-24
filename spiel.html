@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Fang den Ball!</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas {
+      border: 2px solid #e94560;
+      border-radius: 8px;
+    }
+    #info {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    #neustart {
+      margin-top: 12px;
+      padding: 8px 24px;
+      background: #e94560;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Punkte: <span id="punkte">0</span> &nbsp;|&nbsp; Leben: <span id="leben">3</span></div>
+  <canvas id="spielfeld" width="400" height="500"></canvas>
+  <button id="neustart" onclick="spielStarten()">Nochmal spielen</button>
+
+  <script>
+    const canvas = document.getElementById('spielfeld');
+    const ctx = canvas.getContext('2d');
+
+    let spieler, baelle, punkte, leben, laufend, animFrame;
+
+    function spielStarten() {
+      document.getElementById('neustart').style.display = 'none';
+
+      spieler = { x: 160, y: 460, breite: 80, hoehe: 12 };
+      baelle = [];
+      punkte = 0;
+      leben = 3;
+      laufend = true;
+
+      aktualisiereAnzeige();
+      ballHinzufuegen();
+      spielSchleife();
+    }
+
+    function ballHinzufuegen() {
+      baelle.push({
+        x: Math.random() * (canvas.width - 20) + 10,
+        y: -10,
+        radius: 10,
+        geschwindigkeit: 2 + punkte * 0.1,
+        farbe: `hsl(${Math.random() * 360}, 80%, 60%)`
+      });
+    }
+
+    function spielSchleife() {
+      if (!laufend) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Spieler zeichnen
+      ctx.fillStyle = '#e94560';
+      ctx.beginPath();
+      ctx.roundRect(spieler.x, spieler.y, spieler.breite, spieler.hoehe, 6);
+      ctx.fill();
+
+      // Bälle bewegen und zeichnen
+      for (let i = baelle.length - 1; i >= 0; i--) {
+        const b = baelle[i];
+        b.y += b.geschwindigkeit;
+
+        ctx.fillStyle = b.farbe;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Kollision mit Spieler
+        if (
+          b.y + b.radius >= spieler.y &&
+          b.x >= spieler.x &&
+          b.x <= spieler.x + spieler.breite
+        ) {
+          baelle.splice(i, 1);
+          punkte++;
+          aktualisiereAnzeige();
+
+          if (punkte % 5 === 0) ballHinzufuegen(); // alle 5 Punkte neuer Ball
+          ballHinzufuegen();
+          continue;
+        }
+
+        // Ball verpasst
+        if (b.y - b.radius > canvas.height) {
+          baelle.splice(i, 1);
+          leben--;
+          aktualisiereAnzeige();
+          ballHinzufuegen();
+
+          if (leben <= 0) {
+            spielEnde();
+            return;
+          }
+        }
+      }
+
+      animFrame = requestAnimationFrame(spielSchleife);
+    }
+
+    function spielEnde() {
+      laufend = false;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 36px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.font = '22px Arial';
+      ctx.fillText(`Punkte: ${punkte}`, canvas.width / 2, canvas.height / 2 + 20);
+      document.getElementById('neustart').style.display = 'inline-block';
+    }
+
+    function aktualisiereAnzeige() {
+      document.getElementById('punkte').textContent = punkte;
+      document.getElementById('leben').textContent = '❤️'.repeat(leben);
+    }
+
+    // Maus-Steuerung
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      spieler.x = e.clientX - rect.left - spieler.breite / 2;
+      spieler.x = Math.max(0, Math.min(canvas.width - spieler.breite, spieler.x));
+    });
+
+    // Touch-Steuerung (Handy)
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      spieler.x = e.touches[0].clientX - rect.left - spieler.breite / 2;
+      spieler.x = Math.max(0, Math.min(canvas.width - spieler.breite, spieler.x));
+    }, { passive: false });
+
+    spielStarten();
+  </script>
+</body>
+</html>
